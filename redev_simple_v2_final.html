@@ -160,8 +160,21 @@ input[type=range]::-webkit-slider-runnable-track{
 .be-cell.zero .be-cell-val{font-size:20px;color:var(--amber)}
 
 @media(max-width:520px){
-  .res-big{font-size:38px}
-  .delay-grid{grid-template-columns:1fr}
+  .res-big{font-size:36px}
+  .delay-grid{grid-template-columns:1fr 1fr}
+  /* 맹점 헤더 */
+  .danger-item{padding:16px}
+  /* d-top 세로로 쌓기 (금액이 제목 옆에서 아래로) */
+  .d-top{flex-direction:column;gap:6px}
+  .d-amount{text-align:left;font-size:22px}
+  .d-title{font-size:15px}
+  /* extra-inp 슬라이더 flex를 세로로 */
+  .extra-inp > div[style*="flex"]{flex-direction:column !important;gap:12px !important}
+  .extra-inp input[type=range]{width:100% !important}
+  /* 판정 */
+  .v-emoji{font-size:48px}
+  .v-title{font-size:22px}
+  .v-msg{font-size:14px}
 }
   /* ── 네비게이션 바 ── */
   .top-nav{

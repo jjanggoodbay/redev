@@ -610,10 +610,11 @@ function calc(){
   // ━━━ 공사 지연 시뮬 ━━━
   const dg = el("delay_grid"); dg.innerHTML="";
   [0,1,2,3,5].forEach(extra=>{
-    const addRent = rentTotal * 12 * extra;
-    const newTotal = totalRentLoss + addRent;
-    const newBeRent = (right + fixedCosts + addRent + newTotal - reserved) / 0.995;
-    const newBeCapital = (right + fixedCosts + addRent - reserved) / 0.995;
+    const addRent    = rentTotal * 12 * extra;  // 추가 월세 손실
+    // 원금 본전: 현금 지출 비용만 (월세 제외) → 지연돼도 cashCosts는 동일
+    const newBeCapital = beCapital;
+    // 월세 보전: 기존 월세손실 + 추가 월세손실
+    const newBeRent  = (right + cashCosts + totalRentLoss + addRent - reserved) / 0.995;
 
     const col = document.createElement("div");
     col.className = "delay-col" + (extra>0?" active":"");

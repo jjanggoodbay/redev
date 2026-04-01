@@ -1,0 +1,1095 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>재개발 손익 계산기 — 건물주편</title>
+<style>
+:root{
+  --bg:#0d1117;
+  --card:#161d27;
+  --card2:#1a2332;
+  --line:#243040;
+  --text:#f0f4fb;
+  --muted:#7a8fa8;
+  --red:#ff5555;
+  --green:#3dd68c;
+  --amber:#f5b942;
+  --blue:#5b9cf6;
+  --purple:#a78bfa;
+  --fz:1rem; /* 글꼴 크기 배율 — JS로 조정 */
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{overflow-x:hidden}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:"Apple SD Gothic Neo","Malgun Gothic",Arial,sans-serif;
+  min-height:100vh;
+  font-size:var(--fz);
+  overflow-x:hidden;
+}
+
+/* ── 글자 크기 토글 버튼 ── */
+.font-btn{
+  position:fixed;bottom:24px;right:20px;z-index:200;
+  background:var(--amber);color:#0d1117;
+  border:none;border-radius:50px;
+  padding:10px 18px;font-size:15px;font-weight:900;
+  cursor:pointer;box-shadow:0 4px 20px rgba(0,0,0,.5);
+  display:flex;align-items:center;gap:6px;
+  transition:opacity .15s;
+}
+.font-btn:hover{opacity:.85}
+
+/* ── 용어 말풍선 ── */
+.tip{
+  display:inline-block;
+  cursor:help;
+  border-bottom:1px dashed var(--amber);
+  position:relative;
+}
+.tip::after{
+  content:attr(data-tip);
+  position:absolute;bottom:calc(100% + 8px);left:50%;
+  transform:translateX(-50%);
+  background:#1e2d3d;border:1px solid var(--line);
+  color:#dde5f5;font-size:14px;font-weight:400;line-height:1.6;
+  padding:10px 14px;border-radius:10px;
+  white-space:normal;width:220px;
+  pointer-events:none;opacity:0;
+  transition:opacity .15s;
+  z-index:300;
+}
+.tip:hover::after,.tip:focus::after{opacity:1}
+
+/* 모바일: 말풍선 왼쪽 정렬 */
+@media(max-width:480px){
+  .tip::after{left:0;transform:none}
+}
+
+/* ── 네비게이션 ── */
+.top-nav{
+  position:sticky;top:0;z-index:100;
+  background:rgba(13,17,23,.94);
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--line);
+  padding:0 20px;height:52px;
+  display:flex;align-items:center;gap:4px;
+}
+.top-nav a{
+  text-decoration:none;color:var(--muted);font-size:15px;
+  display:flex;align-items:center;gap:6px;
+  padding:6px 12px;border-radius:8px;
+  transition:color .15s,background .15s;white-space:nowrap;
+}
+.top-nav a:hover{color:var(--text);background:rgba(255,255,255,.06)}
+.top-nav .logo{color:var(--amber);font-weight:800;font-size:17px}
+.top-nav .sep{color:var(--line);padding:0 2px;font-size:16px;pointer-events:none}
+.top-nav .current{color:var(--text);font-weight:700;pointer-events:none;cursor:default}
+
+/* ── 레이아웃 ── */
+.wrap{max-width:740px;margin:0 auto;padding:24px 16px 80px}
+
+/* ── 헤더 ── */
+.hdr{text-align:center;padding:36px 0 32px}
+.hdr-badge{
+  display:inline-block;padding:6px 16px;border-radius:99px;
+  background:rgba(167,139,250,.15);border:1px solid rgba(167,139,250,.4);
+  color:#c4b5fd;font-size:15px;font-weight:700;letter-spacing:.04em;margin-bottom:14px;
+}
+.hdr h1{font-size:30px;font-weight:900;line-height:1.4}
+.hdr h1 em{color:var(--amber);font-style:normal}
+.hdr p{color:var(--muted);font-size:17px;margin-top:10px;line-height:1.7}
+
+/* ── 입력 섹션 ── */
+.section{
+  background:var(--card);border:1px solid var(--line);
+  border-radius:22px;padding:26px;margin-bottom:14px;
+}
+.sec-title{display:flex;align-items:center;gap:10px;margin-bottom:20px}
+.sec-icon{font-size:22px;line-height:1}
+.sec-name{font-size:19px;font-weight:800}
+.sec-desc{font-size:15px;color:var(--muted);margin-top:2px}
+
+.inp-row{margin-bottom:22px}
+.inp-row:last-child{margin-bottom:0}
+.inp-q{font-size:18px;font-weight:700;margin-bottom:8px;line-height:1.45;color:#dde5f5}
+.inp-q em{color:var(--amber);font-style:normal}
+.inp-val{font-size:32px;font-weight:900;color:var(--amber);margin-bottom:8px;line-height:1}
+.inp-sub{font-size:16px;color:var(--muted);font-weight:600}
+
+input[type=range]{
+  width:100%;height:8px;appearance:none;-webkit-appearance:none;
+  background:var(--line);border-radius:99px;outline:none;cursor:pointer;
+  margin:0;
+  touch-action:pan-x;
+}
+input[type=range]::-webkit-slider-thumb{
+  appearance:none;width:28px;height:28px;
+  background:var(--amber);border-radius:50%;
+  box-shadow:0 2px 10px rgba(0,0,0,.5);
+}
+input[type=range]::-moz-range-thumb{
+  width:28px;height:28px;
+  background:var(--amber);border-radius:50%;
+  box-shadow:0 2px 10px rgba(0,0,0,.5);
+  border:none;
+}
+.inp-hint{font-size:15px;color:var(--muted);margin-top:6px;line-height:1.6}
+
+.check-row{display:flex;gap:10px;align-items:flex-start;margin-top:12px}
+.check-row input[type=checkbox]{
+  width:20px;height:20px;cursor:pointer;
+  accent-color:var(--amber);flex-shrink:0;margin-top:2px;
+}
+.check-row label{font-size:16px;color:#c8d4e4;cursor:pointer;line-height:1.5}
+
+.divider{
+  border:none;border-top:1px solid rgba(255,85,85,.2);
+  margin:18px 0 20px;
+}
+
+/* ── 핵심 히어로 카드 ── */
+.hero-card{
+  border-radius:24px;padding:30px 28px;margin-bottom:14px;
+  background:rgba(245,185,66,.06);
+  border:2px solid rgba(245,185,66,.45);
+}
+.hero-eyebrow{
+  font-size:15px;font-weight:800;color:var(--amber);
+  letter-spacing:.05em;margin-bottom:18px;
+}
+.hero-be-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px}
+.be-box{border-radius:16px;padding:20px}
+.be-box.capital{background:rgba(91,156,246,.1);border:1px solid rgba(91,156,246,.3)}
+.be-box.rent{background:rgba(245,185,66,.12);border:1px solid rgba(245,185,66,.4)}
+.be-box-label{font-size:14px;font-weight:800;letter-spacing:.03em;margin-bottom:10px}
+.be-box.capital .be-box-label{color:#93c5fd}
+.be-box.rent .be-box-label{color:var(--amber)}
+.be-amount{font-size:30px;font-weight:900;line-height:1}
+.be-box.capital .be-amount{color:var(--blue)}
+.be-box.rent .be-amount{color:var(--amber)}
+.be-sub{font-size:14px;color:var(--muted);margin-top:6px;line-height:1.5}
+
+.hero-status{
+  padding:16px 18px;border-radius:14px;
+  background:rgba(0,0,0,.25);
+  font-size:16px;line-height:1.9;color:#dde5f5;
+  margin-bottom:14px;
+}
+.hero-detail{
+  background:rgba(0,0,0,.2);border-radius:14px;
+  padding:16px 18px;font-size:15px;color:var(--muted);line-height:1.8;
+}
+
+/* ── 청산금/대출 카드 ── */
+.meta-card{
+  border-radius:18px;padding:22px;margin-bottom:14px;
+  background:var(--card);border:1px solid var(--line);
+}
+.meta-card.purple{background:rgba(167,139,250,.08);border-color:rgba(167,139,250,.4)}
+.meta-card.blue{background:rgba(91,156,246,.07);border-color:rgba(91,156,246,.4)}
+.mc-label{font-size:14px;color:var(--muted);font-weight:700;margin-bottom:8px}
+.mc-label.purple{color:#c4b5fd}
+.mc-label.blue{color:#93c5fd}
+.mc-val{font-size:28px;font-weight:900;line-height:1}
+.mc-sub{font-size:14px;color:var(--muted);margin-top:6px;line-height:1.5}
+
+/* ── 손실 요약 ── */
+.loss-summary{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:10px;margin-bottom:14px}
+.ls-card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px}
+.ls-card.red{background:rgba(255,85,85,.07);border-color:rgba(255,85,85,.4)}
+.ls-card.blue{background:rgba(91,156,246,.07);border-color:rgba(91,156,246,.4)}
+.ls-card.amber{background:rgba(245,185,66,.07);border-color:rgba(245,185,66,.4)}
+.ls-card.purple{background:rgba(167,139,250,.07);border-color:rgba(167,139,250,.4)}
+.ls-label{font-size:14px;color:var(--muted);font-weight:700;margin-bottom:8px}
+.ls-val{font-size:28px;font-weight:900;line-height:1}
+.ls-sub{font-size:14px;color:var(--muted);margin-top:6px;line-height:1.5}
+
+/* ── 공사 지연 섹션 ── */
+.delay-section{
+  background:var(--card);border:1px solid rgba(255,85,85,.3);
+  border-radius:22px;overflow:hidden;margin-bottom:14px;
+}
+.delay-header{
+  padding:20px 24px;background:rgba(255,85,85,.05);
+  border-bottom:1px solid rgba(255,85,85,.15);
+}
+.delay-header h2{font-size:19px;font-weight:900;color:#ff8888}
+.delay-header p{font-size:15px;color:var(--muted);margin-top:5px;line-height:1.6}
+
+/* 모바일에서 가로 스크롤 */
+.delay-scroll-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.delay-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0;min-width:0}
+.delay-col{padding:16px 10px;text-align:center;border-right:1px solid var(--line)}
+.delay-col:last-child{border-right:none}
+.delay-col.active{background:rgba(255,85,85,.06)}
+.delay-yr{font-size:13px;font-weight:800;margin-bottom:10px}
+.delay-extra{font-size:12px;color:var(--muted);margin-bottom:3px}
+.delay-rent{font-size:16px;font-weight:900;margin-bottom:4px}
+.delay-divider{font-size:12px;color:var(--muted);margin:6px 0}
+.delay-be-lbl{font-size:12px;color:var(--muted);margin-bottom:2px}
+.delay-be{font-size:15px;font-weight:800}
+.delay-be-lbl2{font-size:12px;color:var(--muted);margin-top:6px;margin-bottom:2px}
+.delay-warn{
+  padding:16px 24px;background:rgba(255,85,85,.06);
+  border-top:1px solid rgba(255,85,85,.15);
+  font-size:15px;color:#ffcccc;line-height:1.75;
+}
+
+/* ── 손실 상세 ── */
+.detail-section{
+  background:var(--card);border:1px solid var(--line);
+  border-radius:22px;overflow:hidden;margin-bottom:14px;
+}
+.detail-header{
+  padding:18px 24px;background:rgba(0,0,0,.15);
+  border-bottom:1px solid var(--line);
+}
+.detail-header h2{font-size:18px;font-weight:900;color:var(--muted)}
+.detail-item{padding:18px 24px;border-bottom:1px solid var(--line)}
+.detail-item:last-child{border-bottom:none}
+.di-row{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.di-left{flex:1;min-width:0}
+.di-title{font-size:17px;font-weight:800;margin-bottom:3px}
+.di-desc{font-size:15px;color:var(--muted);line-height:1.6}
+.di-amount{font-size:24px;font-weight:900;text-align:right;white-space:nowrap;flex-shrink:0}
+.di-detail{
+  margin-top:10px;padding:10px 13px;border-radius:10px;
+  background:var(--card2);font-size:14px;color:var(--muted);line-height:1.7;
+}
+
+/* ── 푸터 ── */
+.footer-note{
+  text-align:center;color:var(--muted);font-size:14px;
+  margin-top:32px;line-height:1.9;
+}
+
+/* ━━━ 모바일 반응형 ━━━ */
+@media(max-width:680px){
+  .hero-be-grid{grid-template-columns:1fr 1fr}
+}
+@media(max-width:480px){
+  .hdr h1{font-size:24px}
+  .hdr p{font-size:15px}
+  .section{padding:20px 16px}
+  .hero-card{padding:22px 18px}
+  .hero-be-grid{grid-template-columns:1fr}
+  .be-amount{font-size:26px}
+  .loss-summary{grid-template-columns:1fr 1fr}
+  .ls-val{font-size:24px}
+  .di-amount{font-size:20px}
+  .delay-header{padding:16px 18px}
+  .delay-warn{padding:14px 18px}
+  .detail-header{padding:14px 18px}
+  .detail-item{padding:14px 18px}
+}
+@media(max-width:380px){
+  .loss-summary{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- 네비게이션 -->
+<nav class="top-nav">
+  <a class="logo" href="index.html">🏠 홈</a>
+  <span class="sep">›</span>
+  <span class="current">🏢 건물주 계산기</span>
+  <div style="flex:1"></div>
+  <a href="redev_simple_v2_final.html">조합원 →</a>
+</nav>
+
+<!-- 글자 크기 토글 버튼 -->
+<button class="font-btn" id="fontToggle" onclick="toggleFont()">
+  <span id="fontIcon">가</span> 글자 크게
+</button>
+
+<div class="wrap">
+
+<!-- 헤더 -->
+<div class="hdr">
+  <div class="hdr-badge">🏢 건물주 전용</div>
+  <h1>재개발 찬성하면 <em>건물주</em>는<br>얼마를 잃게 되나요?</h1>
+  <p>월세만이 아닙니다. 사업 수익, 세입자 합의금, 취득세, 대출이자, 기회비용까지 —<br>
+  모든 손실을 합산해 <b>최소 얼마에 팔아야 본전인지</b> 직접 계산해보세요.</p>
+</div>
+
+<!-- ① 내 건물 현황 -->
+<div class="section">
+  <div class="sec-title">
+    <div class="sec-icon">🏢</div>
+    <div>
+      <div class="sec-name">내 건물 현황</div>
+      <div class="sec-desc">현재 건물의 임대 수익과 자산 규모를 입력하세요</div>
+    </div>
+  </div>
+
+  <div class="inp-row">
+    <div class="inp-q">건물의 <em><span class="tip" data-tip="조합이 감정평가사를 통해 산정한 내 토지·건물의 공식 가치. 조합에서 문서로 통보해 줍니다.">감정평가액</span></em>은?</div>
+    <div class="inp-val" id="v_appraisal"></div>
+    <input type="range" id="s_appraisal" min="100000000" max="5000000000" step="50000000" value="1500000000">
+    <div class="inp-hint">토지·건물 감정평가액 합계 (조합에서 통보받은 금액)</div>
+  </div>
+
+  <div class="inp-row">
+    <div class="inp-q">조합 <em><span class="tip" data-tip="재개발로 얼마나 이익이 났는지를 나타내는 비율. 100%면 정상, 80%면 내 권리가액이 20% 줄어듭니다.">비례율</span></em>은?</div>
+    <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:8px">
+      <div class="inp-val" id="v_ratio" style="margin-bottom:0"></div>
+      <div class="inp-sub" id="v_right_calc"></div>
+    </div>
+    <input type="range" id="s_ratio" min="60" max="130" step="1" value="100">
+    <div class="inp-hint">
+      비례율 = 개발이익 ÷ 종전자산 합계. 통상 80~110% 사이.<br>
+      비례율이 낮을수록 <span class="tip" data-tip="내 감정평가액에 비례율을 곱한 금액. 새 아파트를 받을 때 이 금액만큼 권리가 인정됩니다.">권리가액</span>이 줄어 추가 대출이 늘어납니다.
+    </div>
+  </div>
+
+  <div class="inp-row">
+    <div class="inp-q">현재 <em>월 임대 수입</em> 합계는?</div>
+    <div class="inp-val" id="v_rent_total"></div>
+    <input type="range" id="s_rent_total" min="300000" max="15000000" step="100000" value="3000000">
+    <div class="inp-hint">세입자들에게서 받는 월세 합계</div>
+  </div>
+
+  <div class="inp-row" style="margin-top:6px">
+    <div class="inp-q">건물 내 <em>직접 운영하는 사업</em>의 월 수익은?</div>
+    <div class="inp-val" id="v_biz_income"></div>
+    <input type="range" id="s_biz_income" min="0" max="20000000" step="100000" value="0">
+    <div class="inp-hint">건물 내에서 직접 사업을 운영하는 경우 입력하세요. 없으면 0원. 공사 기간 동안 이 수입도 전부 사라집니다.</div>
+  </div>
+
+  <!-- 합산 표시 -->
+  <div id="income_total_row" style="display:none;margin-top:12px;padding:12px 16px;background:rgba(255,85,85,.08);border:1px solid rgba(255,85,85,.3);border-radius:12px;font-size:14px;color:#ffcccc;line-height:1.7">
+    📌 월 임대수입 + 장사수익 = <b id="v_income_total" style="color:var(--red);font-size:18px"></b> → 공사 기간 내내 <b>전부 0원</b>
+  </div>
+
+  <div class="inp-row" style="margin-top:22px">
+    <div class="inp-q"><em>세입자 수</em>는 몇 명인가요?</div>
+    <div class="inp-val" id="v_tenants"></div>
+    <input type="range" id="s_tenants" min="1" max="20" step="1" value="4">
+    <div class="inp-hint">주거·상가 모두 포함</div>
+  </div>
+
+  <div class="inp-row">
+    <div class="inp-q">세입자 1인당 <em>이사비·명도 합의금</em> 평균은?</div>
+    <div class="inp-val" id="v_move_cost"></div>
+    <input type="range" id="s_move_cost" min="0" max="30000000" step="500000" value="5000000">
+    <div class="inp-hint">
+      <b style="color:rgba(255,120,120,.9)">✔ 필수 지출입니다.</b> 세입자가 있으면 이사비·명도 합의금은 반드시 지급해야 합니다.<br>
+      거부하거나 버티면 협의가 길어져 오히려 금액이 올라갑니다. 상가 세입자는 더 높아질 수 있습니다.
+    </div>
+  </div>
+
+  <div class="inp-row">
+    <div class="inp-q">건물 <em>기존 담보대출</em> 잔액은?</div>
+    <div class="inp-val" id="v_existing_loan"></div>
+    <input type="range" id="s_existing_loan" min="0" max="2000000000" step="10000000" value="0">
+    <div class="inp-hint">착공 전 전액 상환해야 합니다. 없으면 0으로 두세요.</div>
+  </div>
+
+  <div class="check-row">
+    <input type="checkbox" id="chk_owner_lives">
+    <label for="chk_owner_lives">건물주 본인도 건물에 거주 중 (공사 기간 임시 거주비 발생)</label>
+  </div>
+  <div id="owner_move_wrap" style="display:none;margin-top:16px">
+    <div class="inp-q" style="font-size:14px;margin-bottom:8px">본인 임시 거주비 (월)</div>
+    <div class="inp-val" id="v_owner_move"></div>
+    <input type="range" id="s_owner_move" min="300000" max="3000000" step="100000" value="800000">
+  </div>
+</div>
+
+<!-- ② 분양 조건 -->
+<div class="section">
+  <div class="sec-title">
+    <div class="sec-icon">🏗️</div>
+    <div>
+      <div class="sec-name">분양 조건</div>
+      <div class="sec-desc">조합원 분양가와 공사 기간을 입력하세요</div>
+    </div>
+  </div>
+
+  <div class="inp-row">
+    <div class="inp-q">조합원 <em>분양가</em>는?</div>
+    <div class="inp-val" id="v_price"></div>
+    <input type="range" id="s_price" min="300000000" max="3000000000" step="10000000" value="1200000000">
+  </div>
+
+  <div class="inp-row">
+    <div class="inp-q"><em>공사 기간</em>은 몇 년?</div>
+    <div class="inp-val" id="v_const"></div>
+    <input type="range" id="s_const" min="1" max="12" step="1" value="7">
+    <div class="inp-hint">
+      착공부터 입주까지. 서울 일반 재개발 평균은 <b>4~5년</b>이지만 지연이 매우 잦습니다.<br>
+      <span style="color:rgba(255,170,80,.85)">
+        ⚠️ <b>창신동 여건상 7년 이상 각오해야 합니다.</b><br>
+        · 흥인지문(동대문) 문화재 앙각 규제 — 건물 높이 제한으로 설계 자체가 복잡<br>
+        · 한양도성 문화재 보존영향검토구역 — 공사 전 문화재 발굴 조사 의무, 수시 중단 가능<br>
+        · 급경사 구릉지 + 화강암 지반 — 굴착 난이도 상승, 공사비·기간 동시 증가
+      </span>
+    </div>
+  </div>
+
+  <div class="inp-row">
+    <div class="inp-q">착공 전 <em>공실 기간</em> (세입자 내보내는 기간)</div>
+    <div class="inp-val" id="v_vacant"></div>
+    <input type="range" id="s_vacant" min="0" max="36" step="1" value="6">
+    <div class="inp-hint">명도 완료 후 착공까지 월세 수입이 없는 기간 (개월)</div>
+  </div>
+
+  <div class="inp-row">
+    <div class="inp-q">적용 <em><span class="tip" data-tip="새 아파트를 받을 때 국가에 내는 세금. 내 상황(주택 수, 지역)에 따라 세율이 크게 다릅니다.">취득세율</span></em>은?</div>
+    <div class="inp-val" id="v_acq_rate"></div>
+    <input type="range" id="s_acq_rate" min="0.5" max="12" step="0.1" value="2.8">
+    <div class="inp-hint">
+      조합원 원시취득(재개발·재건축): 보통 <b>2.8%</b> ·
+      1주택 일반취득: 1~3% ·
+      2주택(조정지역): 8% ·
+      3주택 이상: 12%<br>
+      본인 상황에 맞게 조정하세요.
+    </div>
+  </div>
+
+  <div class="check-row" style="margin-top:0">
+    <input type="checkbox" id="chk_multi" checked>
+    <label for="chk_multi">다주택자 (참고용 — 세율은 위 슬라이더로 직접 조정)</label>
+  </div>
+
+  <hr class="divider">
+
+  <div class="inp-row">
+    <div class="inp-q">🚨 <em><span class="tip" data-tip="처음 약속한 분양가에 더해 공사 중간에 추가로 내야 하는 돈. 공사비가 오르면 갑자기 통보됩니다.">추가 분담금</span></em> — 공사 중 더 내야 하는 돈</div>
+    <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:8px">
+      <div class="inp-val" id="v_extra_burden" style="margin-bottom:0"></div>
+      <div style="font-size:16px;font-weight:700;color:var(--red)" id="v_extra_burden_pct"></div>
+    </div>
+    <input type="range" id="s_extra_burden" min="0" max="500000000" step="5000000" value="0">
+    <div class="inp-hint" style="color:rgba(255,120,120,.75)">
+      공사비 상승으로 추가 분담금 통보 사례 증가 추세.<br>
+      0원이면 현재 분양가 그대로. 추가 분담금은 손익분기 매도가에 즉시 반영됩니다.
+    </div>
+  </div>
+</div>
+
+<!-- ③ 대출 조건 (분양가 > 권리가액인 경우) -->
+<div class="section" id="loan_section">
+  <div class="sec-title">
+    <div class="sec-icon">💳</div>
+    <div>
+      <div class="sec-name">대출 조건</div>
+      <div class="sec-desc" id="loan_section_desc">추가 대출이 필요한 경우 금리를 설정하세요</div>
+    </div>
+  </div>
+  <div class="inp-row">
+    <div class="inp-q"><em>대출 금리</em> (연)</div>
+    <div class="inp-val" id="v_loan_rate"></div>
+    <input type="range" id="s_loan_rate" min="2" max="9" step="0.1" value="4.0">
+    <div class="inp-hint">권리가액이 분양가보다 적을 때 필요한 추가 대출의 연이자율</div>
+  </div>
+</div>
+
+<!-- ④ 기회비용 -->
+<div class="section" style="border-color:rgba(61,214,140,.3)">
+  <div class="sec-title">
+    <div class="sec-icon">🏦</div>
+    <div>
+      <div class="sec-name">기회비용 계산</div>
+      <div class="sec-desc">재개발 참여 대신 그 돈을 은행에 넣었다면 얼마를 받을 수 있었나</div>
+    </div>
+  </div>
+  <div class="inp-row" style="margin-bottom:0">
+    <div class="inp-q"><em>예금 금리</em> (연, 기회비용 기준)</div>
+    <div class="inp-val" id="v_opp_rate" style="color:var(--green)"></div>
+    <input type="range" id="s_opp_rate" min="1" max="6" step="0.1" value="4.0">
+    <div class="inp-hint">
+      재개발에 묶인 자본(감정평가액)을 이 금리 예금에 넣었을 때의 연이자.<br>
+      <b>손익분기 매도가에는 포함되지 않지만</b>, 재개발 참여 결정의 핵심 비교 기준입니다.
+    </div>
+  </div>
+</div>
+
+<!-- ━━━━━━━━━━━━━━━━━
+     결과 영역
+━━━━━━━━━━━━━━━━━ -->
+
+<!-- 청산금 환급 (조건부) -->
+<div class="meta-card purple" id="refund_card" style="display:none">
+  <div class="mc-label purple">💜 청산금 환급 — 권리가액이 분양가보다 큽니다</div>
+  <div class="mc-val" id="r_refund" style="color:var(--purple)">—</div>
+  <div class="mc-sub" id="r_refund_sub"></div>
+</div>
+
+<!-- 추가 대출 (조건부) -->
+<div class="meta-card blue" id="loan_card" style="margin-bottom:14px">
+  <div class="mc-label blue">💳 추가 대출 필요액</div>
+  <div class="mc-val" id="r_loan" style="color:var(--blue)">—</div>
+  <div class="mc-sub" id="r_loan_sub"></div>
+</div>
+
+<!-- ★ 핵심 히어로: 손익분기 매도가 -->
+<div class="hero-card">
+  <div class="hero-eyebrow">🎯 핵심 질문 — 진짜 손실을 모두 회수하려면 얼마에 팔아야 할까요?</div>
+
+  <div class="hero-be-grid">
+    <div class="be-box capital">
+      <div class="be-box-label">① 원금 본전 최소 매도가</div>
+      <div class="be-amount" id="be_capital">—</div>
+      <div class="be-sub">현금 지출만 회수. 이 미만이면 원금 손해</div>
+    </div>
+    <div class="be-box rent">
+      <div class="be-box-label">② 수입 손실 보전 매도가</div>
+      <div class="be-amount" id="be_rent">—</div>
+      <div class="be-sub" id="be_rent_sub">임대·사업 수익 손실까지 회수</div>
+    </div>
+    <div class="be-box" style="background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.4)">
+      <div class="be-box-label" style="color:#c4b5fd">③ 완전 회수 매도가</div>
+      <div class="be-amount" id="be_full" style="color:var(--purple)">—</div>
+      <div class="be-sub" id="be_full_sub">이자 기회비용까지 포함한 실질 완전 회수</div>
+    </div>
+  </div>
+
+  <div class="hero-status" id="hero_status"></div>
+  <div class="hero-detail" id="hero_detail"></div>
+</div>
+
+<!-- 손실 요약 4칸 -->
+<div class="loss-summary">
+  <div class="ls-card red">
+    <div class="ls-label">🚨 사라지는 총 월세</div>
+    <div class="ls-val" id="s_rent_loss" style="color:var(--red)">—</div>
+    <div class="ls-sub" id="s_rent_loss_sub"></div>
+  </div>
+  <div class="ls-card amber">
+    <div class="ls-label">👥 세입자 이사비·합의금</div>
+    <div class="ls-val" id="s_tenant_cost" style="color:var(--amber)">—</div>
+    <div class="ls-sub" id="s_tenant_sub"></div>
+  </div>
+  <div class="ls-card blue">
+    <div class="ls-label">📋 취득세</div>
+    <div class="ls-val" id="s_acq_tax" style="color:var(--blue)">—</div>
+    <div class="ls-sub" id="s_acq_sub"></div>
+  </div>
+  <div class="ls-card" id="s_extra_card">
+    <div class="ls-label" id="s_extra_label">🏦 기타 비용</div>
+    <div class="ls-val" id="s_extra_val" style="color:var(--muted)">—</div>
+    <div class="ls-sub" id="s_extra_sub"></div>
+  </div>
+  <div class="ls-card" id="s_biz_card" style="display:none">
+    <div class="ls-label" style="color:#f87171">🛒 영업 손실</div>
+    <div class="ls-val" id="s_biz_loss" style="color:var(--red)">—</div>
+    <div class="ls-sub" id="s_biz_loss_sub"></div>
+  </div>
+</div>
+
+<!-- ⏰ 공사 지연 시뮬 -->
+<div class="delay-section">
+  <div class="delay-header">
+    <h2>⏰ 공사가 지연되면 날리는 월세가 이렇게 늘어납니다</h2>
+    <p>대출이 없어도 상관없습니다. 지연되는 기간만큼 월세가 자동으로 증발합니다.<br>
+    날린 월세를 보전하는 <b>최소 매도가도 그만큼 올라갑니다.</b></p>
+  </div>
+  <div class="delay-scroll-wrap">
+    <div class="delay-grid" id="delay_grid"></div>
+  </div>
+  <div class="delay-warn" id="delay_warn"></div>
+</div>
+
+<!-- 손실 상세 -->
+<div class="detail-section">
+  <div class="detail-header">
+    <h2>📋 비용 항목 상세</h2>
+  </div>
+
+  <div class="detail-item">
+    <div class="di-row">
+      <div class="di-left">
+        <div class="di-title">🏠 임대 수입 완전 중단</div>
+        <div class="di-desc">공실기간 + 공사기간 내내 월세가 0원이 됩니다.</div>
+      </div>
+      <div class="di-amount" id="d_rent" style="color:var(--red)">—</div>
+    </div>
+    <div class="di-detail" id="d_rent_detail"></div>
+  </div>
+
+  <div class="detail-item">
+    <div class="di-row">
+      <div class="di-left">
+        <div class="di-title">👥 세입자 이사비·명도 합의금</div>
+        <div class="di-desc">거부하는 세입자일수록 합의금이 올라갑니다. 상가는 영업손실 보상 요구도 있습니다.</div>
+      </div>
+      <div class="di-amount" id="d_tenant" style="color:var(--amber)">—</div>
+    </div>
+    <div class="di-detail" id="d_tenant_detail"></div>
+  </div>
+
+  <div class="detail-item">
+    <div class="di-row">
+      <div class="di-left">
+        <div class="di-title">📋 취득세</div>
+        <div class="di-desc">다주택자 중과 여부에 따라 세금 규모가 크게 달라집니다.</div>
+      </div>
+      <div class="di-amount" id="d_acq" style="color:var(--blue)">—</div>
+    </div>
+    <div class="di-detail" id="d_acq_detail"></div>
+  </div>
+
+  <div class="detail-item" id="d_loan_item" style="display:none">
+    <div class="di-row">
+      <div class="di-left">
+        <div class="di-title">💳 신규 대출이자</div>
+        <div class="di-desc">권리가액이 분양가보다 부족한 경우 발생합니다.</div>
+      </div>
+      <div class="di-amount" id="d_interest" style="color:var(--red)">—</div>
+    </div>
+    <div class="di-detail" id="d_interest_detail"></div>
+  </div>
+
+  <div class="detail-item" id="d_existing_item">
+    <div class="di-row">
+      <div class="di-left">
+        <div class="di-title">🏦 기존 담보대출 상환</div>
+        <div class="di-desc">착공 전 반드시 청산해야 합니다. 중도상환수수료도 발생할 수 있습니다.</div>
+      </div>
+      <div class="di-amount" id="d_existing" style="color:var(--muted)">—</div>
+    </div>
+    <div class="di-detail" id="d_existing_detail"></div>
+  </div>
+
+  <div class="detail-item" id="d_owner_item" style="display:none">
+    <div class="di-row">
+      <div class="di-left">
+        <div class="di-title">🏠 건물주 임시 거주비</div>
+        <div class="di-desc">공사 기간 동안 본인도 다른 곳에서 살아야 합니다.</div>
+      </div>
+      <div class="di-amount" id="d_owner" style="color:var(--muted)">—</div>
+    </div>
+    <div class="di-detail" id="d_owner_detail"></div>
+  </div>
+
+  <div class="detail-item" id="d_biz_item" style="display:none">
+    <div class="di-row">
+      <div class="di-left">
+        <div class="di-title">🛒 직접 영업 손실</div>
+        <div class="di-desc">공사 기간 중 폐업·휴업으로 사라지는 영업 순이익입니다. 월세와 별개로 추가 발생합니다.</div>
+      </div>
+      <div class="di-amount" id="d_biz" style="color:var(--red)">—</div>
+    </div>
+    <div class="di-detail" id="d_biz_detail"></div>
+  </div>
+
+  <div class="detail-item" style="background:rgba(61,214,140,.04)">
+    <div class="di-row">
+      <div class="di-left">
+        <div class="di-title" style="color:var(--green)">🏦 기회비용 (예금이자 기준)</div>
+        <div class="di-desc">재개발에 묶인 자본을 예금에 넣었다면 받을 수 있었던 이자. 손익분기 계산엔 미포함이지만 실질 손실입니다.</div>
+      </div>
+      <div class="di-amount" id="d_opp_cost" style="color:var(--green)">—</div>
+    </div>
+    <div class="di-detail" id="d_opp_detail"></div>
+  </div>
+</div>
+
+<!-- 🚨 상가 공실 현실 경고 -->
+<div style="background:rgba(255,85,85,.06);border:1.5px solid rgba(255,85,85,.35);border-radius:22px;padding:26px;margin-bottom:14px">
+  <div style="font-size:13px;font-weight:800;color:var(--red);letter-spacing:.05em;margin-bottom:14px">
+    🏪 상가를 받는 조합원이라면 반드시 읽어야 할 현실
+  </div>
+  <div style="font-size:15px;font-weight:900;color:var(--text);margin-bottom:12px;line-height:1.5">
+    신축 아파트 단지 상가, <span style="color:var(--red)">입주해도 수년째 공실</span>이 기본입니다
+  </div>
+  <div style="font-size:13px;color:#e8c8c8;line-height:1.85">
+    조합원이 상가를 배정받는 것은 얼핏 좋아 보이지만, 입주 후 장기 공실이 이어지면
+    <b>관리비·재산세만 나가는 負의 자산</b>이 됩니다. 실제 최근 사례를 보면:
+  </div>
+  <div style="margin-top:14px;display:flex;flex-direction:column;gap:10px">
+    <div style="background:rgba(0,0,0,.2);border-radius:12px;padding:14px 16px;font-size:13px;color:#f0d0d0;line-height:1.75">
+      🔴 <b>올림픽파크포레온(강동구, 둔촌주공 재건축)</b><br>
+      1만 2천 가구의 국내 최대 배후 수요를 가졌음에도 477호실 상가 중 <b>약 63%(300여 곳)가 입주 이후에도 공실</b>. 높은 임대료와 동선 문제로 회복이 더딤.
+    </div>
+    <div style="background:rgba(0,0,0,.2);border-radius:12px;padding:14px 16px;font-size:13px;color:#f0d0d0;line-height:1.75">
+      🔴 <b>래미안 원베일리·메이플자이(서초구)</b><br>
+      강남 핵심 입지임에도 래미안 원베일리는 2023년 입주 후 1층 상가조차 일부 공실. 메이플자이는 상가 통매각이 한 번 유찰된 뒤 기준가를 10% 낮춰 겨우 매각.
+    </div>
+    <div style="background:rgba(0,0,0,.2);border-radius:12px;padding:14px 16px;font-size:13px;color:#f0d0d0;line-height:1.75">
+      🔴 <b>헬리오시티(가락, 9510세대)</b><br>
+      입주 5년차에도 높은 공실률 지속. 1층 상가 일부가 감정가 26억 → 15억으로 10억 넘게 떨어지고도 낙찰 안 됨.
+    </div>
+    <div style="background:rgba(0,0,0,.2);border-radius:12px;padding:14px 16px;font-size:13px;color:#f0d0d0;line-height:1.75">
+      ⚠️ <b>2층 이상은 더 심각</b><br>
+      1층도 이 지경인데 2층은 더 오래 걸립니다. 상권이 자리 잡히기 전까지 수년간 공실이 이어지는 게 현실.
+      서울시도 결국 상가 의무비율을 20% → 10%로 낮추며 "공실 폭탄"을 인정했습니다.
+    </div>
+    <div style="background:rgba(0,0,0,.2);border-radius:12px;padding:14px 16px;font-size:13px;color:#f0d0d0;line-height:1.75">
+      ⚠️ <b>상가 분쟁이 아파트 등기까지 막는다</b><br>
+      올림픽파크포레온 사례처럼, 상가 분쟁이 소송으로 번지면 <b>아파트 조합원의 소유권 이전등기도 지연</b>될 수 있습니다. 상가를 갖게 된다는 것은 이런 분쟁 리스크도 함께 짊어지는 것입니다.
+    </div>
+  </div>
+  <div style="margin-top:14px;padding:12px 16px;background:rgba(255,85,85,.12);border-radius:10px;font-size:12px;color:#ffaaaa;line-height:1.75">
+    📌 <b>현실적인 판단 기준:</b> 상가를 배정받기보다 <b>아파트를 요구하는 조합원이 늘고 있는</b> 이유가 여기 있습니다. 반포 등 주요 재개발 현장에서도 상가 보유자들이 아파트로 전환을 요구하는 목소리가 나오고 있습니다. 상가는 "받는 것"이 아니라 "사는 것"처럼 따져야 합니다.
+  </div>
+</div>
+
+<div class="footer-note">
+  재개발 손익 계산기 — 건물주편 v3.0<br>
+  취득세율은 직접 입력 가능합니다. 조합원 원시취득은 통상 2.8%, 실제 세율은 조건에 따라 다릅니다.<br>
+  본 계산기는 개인 판단을 돕기 위한 참고용이며, 실제 결과와 다를 수 있습니다.
+</div>
+
+</div><!-- /wrap -->
+
+<script>
+/* ── 글자 크기 토글 ── */
+let bigFont = false;
+function toggleFont(){
+  bigFont = !bigFont;
+  document.documentElement.style.setProperty('--fz', bigFont ? '1.2rem' : '1rem');
+  const btn = document.getElementById('fontToggle');
+  btn.innerHTML = bigFont
+    ? '<span>가</span> 글자 작게'
+    : '<span>가</span> 글자 크게';
+}
+/* ── 포맷 유틸 ── */
+function won(v){
+  const s=v<0?"-":"", a=Math.abs(Math.round(v));
+  const e=Math.floor(a/100000000), m=Math.round((a%100000000)/10000);
+  if(e>0&&m>0) return s+e+"억 "+m.toLocaleString()+"만원";
+  if(e>0)      return s+e+"억";
+  return s+m.toLocaleString()+"만원";
+}
+function wonS(v){
+  const s=v<0?"-":"", a=Math.abs(Math.round(v));
+  const e=Math.floor(a/100000000), m=Math.round((a%100000000)/10000);
+  if(e>0&&m>0) return s+e+"억 "+m.toLocaleString()+"만";
+  if(e>0)      return s+e+"억";
+  return s+m.toLocaleString()+"만";
+}
+function el(id){ return document.getElementById(id); }
+function n(id){ return Number(el(id).value); }
+
+/* ── 이벤트 등록 ── */
+el("chk_owner_lives").addEventListener("change", function(){
+  el("owner_move_wrap").style.display = this.checked ? "block" : "none";
+  calc();
+});
+el("chk_multi").addEventListener("change", calc);
+
+[
+  "s_appraisal","s_ratio","s_rent_total","s_biz_income","s_tenants","s_move_cost",
+  "s_existing_loan","s_owner_move","s_price","s_const","s_vacant",
+  "s_acq_rate","s_extra_burden","s_loan_rate",
+  "s_tenant_biz_count","s_tenant_biz_income","s_tenant_biz_months",
+  "s_opp_rate"
+].forEach(id => {
+  const e = el(id);
+  if(e) e.addEventListener("input", calc);
+});
+
+/* ── 핵심 계산 ── */
+function calc(){
+  /* 입력값 읽기 */
+  const appraisal    = n("s_appraisal");
+  const ratio        = n("s_ratio");
+  const right        = Math.round(appraisal * ratio / 100);   // 권리가액
+  const rentTotal    = n("s_rent_total");
+  const tenants      = n("s_tenants");
+  const moveCost     = n("s_move_cost");
+  const existingLoan = n("s_existing_loan");
+  const price        = n("s_price");
+  const constY       = n("s_const");
+  const vacantM      = n("s_vacant");
+  const ownerLives   = el("chk_owner_lives").checked;
+  const ownerMove    = ownerLives ? n("s_owner_move") : 0;
+  const bizIncome    = n("s_biz_income");   // 건물주 직접 장사 월수익 (0이면 없음)
+  const hasBiz       = bizIncome > 0;
+  const hasTenantBiz = false; // 제거됨
+  const tenantBizCount = 0, tenantBizIncome = 0, tenantBizMonths = 0;
+  const oppRate      = n("s_opp_rate") / 100;
+  const acqTaxRate   = n("s_acq_rate") / 100;
+  const extraBurden  = n("s_extra_burden");
+  const loanRate     = n("s_loan_rate") / 100;
+
+  /* 슬라이더 표시값 갱신 */
+  el("v_appraisal").textContent     = won(appraisal);
+  el("v_ratio").textContent         = ratio + "%";
+  el("v_right_calc").textContent    = `→ 권리가액 ${won(right)}`;
+  el("v_rent_total").textContent    = won(rentTotal) + "/월";
+  el("v_tenants").textContent       = tenants + "명";
+  el("v_move_cost").textContent     = won(moveCost) + "/인";
+  el("v_existing_loan").textContent = existingLoan === 0 ? "없음 (0원)" : won(existingLoan);
+  el("v_existing_loan").style.color = existingLoan === 0 ? "var(--muted)" : "var(--amber)";
+  el("v_price").textContent         = won(price);
+  el("v_const").textContent         = constY + "년";
+  el("v_vacant").textContent        = vacantM + "개월";
+  el("v_acq_rate").textContent      = n("s_acq_rate").toFixed(1) + "%";
+  el("v_loan_rate").textContent      = n("s_loan_rate").toFixed(1) + "%";
+  el("v_opp_rate").textContent       = n("s_opp_rate").toFixed(1) + "%";
+  el("v_biz_income").textContent     = bizIncome === 0 ? "없음 (0원)" : won(bizIncome) + "/월";
+  el("v_biz_income").style.color     = bizIncome === 0 ? "var(--muted)" : "var(--amber)";
+  if(ownerLives) el("v_owner_move").textContent = won(ownerMove) + "/월";
+
+  // 임대수입 + 장사수익 합산 배너
+  const totalMonthlyIncome = rentTotal + bizIncome;
+  const incomeRow = el("income_total_row");
+  if(bizIncome > 0){
+    incomeRow.style.display = "block";
+    el("v_income_total").textContent = won(totalMonthlyIncome) + "/월";
+  } else {
+    incomeRow.style.display = "none";
+  }
+
+  /* 추가 분담금 표시 */
+  el("v_extra_burden").textContent = extraBurden === 0 ? "없음 (0원)" : won(extraBurden);
+  el("v_extra_burden").style.color = extraBurden === 0 ? "var(--muted)" : "var(--red)";
+  const burdenPct = price > 0 ? (extraBurden / price * 100).toFixed(1) : 0;
+  el("v_extra_burden_pct").textContent = extraBurden === 0 ? "" : `(분양가의 +${burdenPct}%)`;
+
+  /* ── 기본 계산 ── */
+  const loan     = Math.max(price - right, 0);
+  const reserved = Math.max(right - price, 0);   // 청산금 환급
+
+  /* 손실 항목 */
+  const vacantLoss    = rentTotal * vacantM;
+  const constLoss     = rentTotal * 12 * constY;
+  const totalRentLoss = vacantLoss + constLoss;
+  const totalMonths   = vacantM + constY * 12;
+
+  const tenantCost   = tenants * moveCost;
+  const tenantBizComp = tenantBizCount * tenantBizIncome * tenantBizMonths; // 상가 세입자 영업보상
+  const totalTenantCost = tenantCost + tenantBizComp;
+  const ownerCost    = ownerMove * 12 * constY;
+  const bizLoss      = bizIncome * totalMonths;
+  const acqTax       = (price + extraBurden) * acqTaxRate;
+
+  /* 수입 손실 합계 (임대 + 직접 사업) */
+  const totalOpLoss  = totalRentLoss + bizLoss;
+
+  /* 기회비용: 못 받은 수입을 은행에 넣었다면 받았을 이자
+     수입이 매달 조금씩 쌓였다고 보면 평균 보유기간 = totalMonths/2 */
+  const totalYears   = totalMonths / 12;
+  const oppCost      = totalOpLoss * oppRate * (totalMonths / 24);
+
+  /* 대출이자 (사용자 설정 금리) */
+  const interest = loan * loanRate * constY;
+
+  /* 총 현금 지출 비용 (월세 손실, 영업 손실 제외) */
+  const cashCosts = loan + interest + totalTenantCost + ownerCost + acqTax + existingLoan + extraBurden;
+
+  /* ── 손익분기 매도가 ── */
+  // 매도 시 중개보수 약 0.5% 가정
+  // ① 원금 본전: 현금 지출만 회수
+  const beCapital  = (right + cashCosts - reserved) / 0.995;
+  // ② 수입 손실 보전: 현금 지출 + 임대·사업 수익 손실
+  const beRentFull = (right + cashCosts + totalOpLoss - reserved) / 0.995;
+  // ③ 완전 보전 (수입 손실 + 기회비용 이자까지)
+  const beFullAll  = (right + cashCosts + totalOpLoss + oppCost - reserved) / 0.995;
+  const rentGap    = beFullAll - beCapital;
+
+  /* ── 대출 섹션 표시 제어 ── */
+  // 대출이 없어도 금리 섹션은 항상 표시 (혹시 나중에 생길 수 있으므로)
+  el("loan_section_desc").textContent = loan > 0
+    ? `분양가 − 권리가액 = ${won(loan)} 추가 대출 필요`
+    : "현재 권리가액이 분양가 이상이라 추가 대출이 없습니다.";
+  el("loan_section").style.opacity = loan > 0 ? "1" : "0.5";
+
+  /* ── 청산금 / 추가대출 카드 ── */
+  if(reserved > 0){
+    el("refund_card").style.display = "block";
+    el("loan_card").style.display   = "none";
+    el("r_refund").textContent      = won(reserved);
+    el("r_refund_sub").textContent  =
+      `권리가액 ${won(right)} − 분양가 ${won(price)} = ${won(reserved)} 환급. 최종 손익에 포함됩니다.`;
+  } else {
+    el("refund_card").style.display = "none";
+    el("loan_card").style.display   = "block";
+    el("r_loan").textContent = loan === 0 ? "대출 없음 🎉" : won(loan);
+    el("r_loan_sub").textContent = loan === 0
+      ? "권리가액과 분양가가 같습니다."
+      : `분양가 ${won(price)} − 권리가액 ${won(right)} = ${won(loan)}`;
+  }
+
+  /* ── 히어로 카드 ── */
+  el("be_capital").textContent  = won(Math.round(beCapital));
+  el("be_rent").textContent     = won(Math.round(beRentFull));
+  el("be_rent_sub").textContent = hasBiz
+    ? `임대 손실 ${won(totalRentLoss)} + 사업 손실 ${won(bizLoss)} 포함`
+    : `임대 손실 ${won(totalRentLoss)} 포함`;
+  el("be_full").textContent     = won(Math.round(beFullAll));
+  el("be_full_sub").textContent = `수입 손실 ${won(totalOpLoss)} + 이자 기회비용 ${won(Math.round(oppCost))} 포함`;
+
+  el("hero_status").innerHTML =
+    `① <b>원금 본전</b> 최소 매도가: <span style="color:var(--blue);font-weight:900">${won(Math.round(beCapital))}</span><br>`+
+    `② <b>수입 손실 보전</b>까지 회수: <span style="color:var(--amber);font-weight:900">${won(Math.round(beRentFull))}</span><br>`+
+    `③ <b>기회비용까지 완전 회수</b>: <span style="color:var(--purple);font-weight:900">${won(Math.round(beFullAll))}</span><br>`+
+    `<span style="color:var(--muted);font-size:12px">어느 기준에 팔지가 재개발 참여 여부의 핵심 판단 기준입니다.</span>`;
+
+  el("hero_detail").innerHTML =
+    `공사기간 ${constY}년 + 공실기간 ${vacantM}개월 = 총 <b>${totalMonths}개월</b> 동안 `+
+    `월 <b>${won(rentTotal + bizIncome)}</b>씩`+
+    (hasBiz ? ` (임대 ${won(rentTotal)} + 사업 ${won(bizIncome)})` : "") +
+    `, <b style="color:var(--red)">${won(totalOpLoss)}</b> 증발.<br>`+
+    `이 수입을 연 ${(oppRate*100).toFixed(1)}% 예금에 넣었다면 이자 <b style="color:var(--purple)">${won(Math.round(oppCost))}</b> 추가 발생.<br>`+
+    `원금 본전가 대비 완전 회수까지 <b style="color:var(--red)">${won(Math.round(rentGap))}</b> 차이.`+
+    (reserved > 0 ? `<br>청산금 환급 ${won(reserved)}는 위 계산에 이미 반영되어 있습니다.` : "");
+
+  /* ── 손실 요약 4칸 ── */
+  el("s_rent_loss").textContent      = won(totalOpLoss);
+  el("s_rent_loss_sub").textContent  = hasBiz
+    ? `임대 ${won(rentTotal)} + 장사 ${won(bizIncome)} = 월 ${won(rentTotal+bizIncome)} × ${totalMonths}개월`
+    : `월 ${won(rentTotal)} × ${totalMonths}개월`;
+  // 라벨도 동적으로
+  const rentLossLabel = document.querySelector("#s_rent_loss").closest(".ls-card").querySelector(".ls-label");
+  if(rentLossLabel) rentLossLabel.textContent = hasBiz ? "🚨 사라지는 임대·장사 수입" : "🚨 사라지는 총 월세";
+  el("s_tenant_cost").textContent    = won(totalTenantCost);
+  el("s_tenant_sub").textContent     = hasTenantBiz
+    ? `이사비 ${won(tenantCost)} + 영업보상 ${won(tenantBizComp)}`
+    : `${tenants}명 × ${won(moveCost)}`;
+  el("s_acq_tax").textContent        = won(acqTax);
+  el("s_acq_sub").textContent        = `분양가 × ${(acqTaxRate * 100).toFixed(1)}%`;
+
+  /* 영업 손실 카드 (조건부 표시) */
+  if(hasBiz && bizLoss > 0){
+    el("s_biz_card").style.display    = "block";
+    el("s_biz_loss").textContent      = won(bizLoss);
+    el("s_biz_loss_sub").textContent  = `월 ${won(bizIncome)} × ${totalMonths}개월`;
+  } else {
+    el("s_biz_card").style.display = "none";
+  }
+
+  /* 추가 분담금 / 기타 카드 */
+  const burdenCard = el("s_extra_card");
+  if(extraBurden > 0){
+    burdenCard.className = "ls-card red";
+    el("s_extra_label").textContent = "🚨 추가 분담금";
+    el("s_extra_val").textContent   = won(extraBurden);
+    el("s_extra_val").style.color   = "var(--red)";
+    el("s_extra_sub").textContent   = `분양가의 +${(extraBurden / price * 100).toFixed(1)}%`
+      + (interest > 0 || existingLoan > 0 || ownerCost > 0
+          ? ` | 기타: ${won(interest + existingLoan + ownerCost)}` : "");
+  } else {
+    const extraCost = interest + existingLoan + ownerCost;
+    if(extraCost > 0){
+      burdenCard.className = "ls-card red";
+      el("s_extra_label").textContent = loan > 0 ? "💳 이자·기존대출 등" : "🏦 기존대출·거주비";
+      el("s_extra_val").textContent   = won(extraCost);
+      el("s_extra_val").style.color   = "var(--red)";
+      const parts = [];
+      if(interest > 0)     parts.push(`이자 ${won(interest)}`);
+      if(existingLoan > 0) parts.push(`기존대출 ${won(existingLoan)}`);
+      if(ownerCost > 0)    parts.push(`거주비 ${won(ownerCost)}`);
+      el("s_extra_sub").textContent = parts.join(" + ");
+    } else {
+      burdenCard.className = "ls-card";
+      el("s_extra_label").textContent = "✅ 추가 분담금 없음";
+      el("s_extra_val").textContent   = "0원";
+      el("s_extra_val").style.color   = "var(--green)";
+      el("s_extra_sub").textContent   = "현재 분양가 그대로";
+    }
+  }
+
+  /* ── 공사 지연 시뮬레이션 ── */
+  const dg = el("delay_grid");
+  dg.innerHTML = "";
+  // 지연 시 연간 추가 손실 = 월세 + 영업 손실
+  const monthlyOpLoss = rentTotal + bizIncome;
+
+  [0,1,2].forEach(extra => {
+    const addLoss    = monthlyOpLoss * 12 * extra;
+    const newBeRent  = (right + cashCosts + totalOpLoss + addLoss - reserved) / 0.995;
+    const newBeCapital = beCapital;  // 원금 본전은 지연과 무관
+
+    const col = document.createElement("div");
+    col.className = "delay-col" + (extra > 0 ? " active" : "");
+    col.innerHTML =
+      `<div class="delay-yr" style="color:${extra===0?"var(--green)":"var(--red)"}">` +
+        (extra === 0 ? "예정대로" : "+" + extra + "년 지연") + `</div>`+
+      `<div class="delay-extra">추가 손실 (월세${hasBiz?"+영업":""})</div>`+
+      `<div class="delay-rent" style="color:${extra===0?"var(--muted)":"var(--red)"}">` +
+        (extra === 0 ? "—" : "-" + wonS(addLoss)) + `</div>`+
+      `<div class="delay-divider">↓ 필요 매도가</div>`+
+      `<div class="delay-be-lbl">원금 본전</div>`+
+      `<div class="delay-be" style="color:var(--blue)">${wonS(Math.round(newBeCapital))}</div>`+
+      `<div class="delay-be-lbl2">수입 손실 보전</div>`+
+      `<div class="delay-be" style="color:var(--amber)">${wonS(Math.round(newBeRent))}</div>`;
+    dg.appendChild(col);
+  });
+
+  const annual = monthlyOpLoss * 12;
+  el("delay_warn").innerHTML =
+    `📌 공사가 <b>1년 지연될 때마다 ${hasBiz ? `월세+영업 합계 ${won(annual)}` : `월세 ${won(annual)}`} 추가 손실</b>이 발생합니다.<br>`+
+    `3년 지연이면 추가 손실만 <b style="color:var(--red)">${won(annual * 3)}</b>. `+
+    `손실을 보전하는 최소 매도가도 같이 올라갑니다.<br>`+
+    `<span style="color:var(--muted)">대출 이자와 달리 이건 대출이 없어도 무조건 발생합니다.</span>`;
+
+  /* ── 손실 상세 ── */
+  el("d_rent").textContent = won(totalRentLoss);
+  el("d_rent_detail").innerHTML =
+    `공실기간: 월 ${won(rentTotal)} × ${vacantM}개월 = <b>${won(vacantLoss)}</b><br>`+
+    `공사기간: 월 ${won(rentTotal)} × 12개월 × ${constY}년 = <b>${won(constLoss)}</b><br>`+
+    `합계: <b style="color:var(--red)">${won(totalRentLoss)}</b>`;
+
+  el("d_tenant").textContent = won(totalTenantCost);
+  el("d_tenant_detail").innerHTML =
+    `이사비: ${tenants}명 × ${won(moveCost)} = <b>${won(tenantCost)}</b><br>`+
+    (hasTenantBiz
+      ? `영업보상: ${tenantBizCount}명 × ${won(tenantBizIncome)} × ${tenantBizMonths}개월 = <b style="color:var(--red)">${won(tenantBizComp)}</b><br>`
+      : "") +
+    `합계: <b>${won(totalTenantCost)}</b>`;
+
+  el("d_acq").textContent = won(acqTax);
+  el("d_acq_detail").innerHTML =
+    `분양가 ${won(price + extraBurden)} × ${(acqTaxRate * 100).toFixed(1)}% = <b>${won(acqTax)}</b><br>`+
+    `<span style="color:var(--muted)">조합원 원시취득(재개발): 통상 2.8% / 1주택 일반취득: 1~3% / 조정지역 2주택: 8% / 3주택+: 12%</span>`;
+
+  /* 신규 대출이자 */
+  if(loan > 0){
+    el("d_loan_item").style.display = "block";
+    el("d_interest").textContent = won(interest);
+    el("d_interest_detail").textContent =
+      `대출 ${won(loan)} × 연 ${(loanRate * 100).toFixed(1)}% × ${constY}년 = ${won(interest)}`;
+  } else {
+    el("d_loan_item").style.display = "none";
+  }
+
+  /* 기존 담보대출 */
+  el("d_existing").textContent = existingLoan === 0 ? "해당 없음" : won(existingLoan);
+  el("d_existing").style.color = existingLoan === 0 ? "var(--muted)" : "var(--red)";
+  el("d_existing_detail").textContent = existingLoan === 0
+    ? "기존 담보대출이 없습니다."
+    : `착공 전 ${won(existingLoan)} 전액 상환 필요. 중도상환수수료도 별도 발생 가능합니다.`;
+
+  /* 건물주 거주비 */
+  if(ownerLives && ownerCost > 0){
+    el("d_owner_item").style.display = "block";
+    el("d_owner").textContent = won(ownerCost);
+    el("d_owner_detail").textContent =
+      `월 ${won(ownerMove)} × 12개월 × ${constY}년 = ${won(ownerCost)}`;
+  } else {
+    el("d_owner_item").style.display = "none";
+  }
+
+  /* 직접 영업 손실 */
+  if(hasBiz && bizLoss > 0){
+    el("d_biz_item").style.display = "block";
+    el("d_biz").textContent = won(bizLoss);
+    el("d_biz_detail").innerHTML =
+      `월 순이익 ${won(bizIncome)} × ${totalMonths}개월 = <b style="color:var(--red)">${won(bizLoss)}</b><br>`+
+      `<span style="color:var(--muted)">공실기간(${vacantM}개월) + 공사기간(${constY*12}개월) 전체가 영업 불가 기간입니다.<br>`+
+      `조합으로부터 영업 보상을 받는 경우 해당 금액을 제외하고 순손실만 입력하세요.</span>`;
+  } else {
+    el("d_biz_item").style.display = "none";
+  }
+
+  /* 기회비용 */
+  el("d_opp_cost").textContent = won(Math.round(oppCost));
+  el("d_opp_detail").innerHTML =
+    `공사기간 중 못 받은 수입 합계 ${won(totalOpLoss)} × 연 ${(oppRate*100).toFixed(1)}% × 평균 보유 ${(totalMonths/24).toFixed(1)}년 = <b style="color:var(--green)">${won(Math.round(oppCost))}</b><br>`+
+    `<span style="color:var(--muted)">수입이 매달 조금씩 들어온다고 가정할 때, 그 돈을 예금에 넣었다면 벌 수 있었던 이자입니다.<br>`+
+    `이 금액은 손익분기 ③(완전 회수 매도가)에 포함되어 있습니다.</span>`;
+}
+
+calc();
+</script>
+</body>
+</html>

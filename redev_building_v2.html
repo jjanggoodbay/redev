@@ -17,7 +17,6 @@
   --amber:#f5b942;
   --blue:#5b9cf6;
   --purple:#a78bfa;
-  --fz:1rem; /* 글꼴 크기 배율 — JS로 조정 */
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{
@@ -25,20 +24,8 @@ body{
   color:var(--text);
   font-family:"Apple SD Gothic Neo","Malgun Gothic",Arial,sans-serif;
   min-height:100vh;
-  font-size:var(--fz);
 }
 
-/* ── 글자 크기 토글 버튼 ── */
-.font-btn{
-  position:fixed;bottom:24px;right:20px;z-index:200;
-  background:var(--amber);color:#0d1117;
-  border:none;border-radius:50px;
-  padding:10px 18px;font-size:15px;font-weight:900;
-  cursor:pointer;box-shadow:0 4px 20px rgba(0,0,0,.5);
-  display:flex;align-items:center;gap:6px;
-  transition:opacity .15s;
-}
-.font-btn:hover{opacity:.85}
 
 /* ── 용어 말풍선 ── */
 .tip{
@@ -299,10 +286,7 @@ input[type=range]::-moz-range-thumb{
   <a href="redev_simple_v2_final.html">조합원 →</a>
 </nav>
 
-<!-- 글자 크기 토글 버튼 -->
-<button class="font-btn" id="fontToggle" onclick="toggleFont()">
-  <span id="fontIcon">가</span> 글자 크게
-</button>
+
 
 <div class="wrap">
 
@@ -737,16 +721,6 @@ input[type=range]::-moz-range-thumb{
 </div><!-- /wrap -->
 
 <script>
-/* ── 글자 크기 토글 ── */
-let bigFont = false;
-function toggleFont(){
-  bigFont = !bigFont;
-  document.documentElement.style.setProperty('--fz', bigFont ? '1.2rem' : '1rem');
-  const btn = document.getElementById('fontToggle');
-  btn.innerHTML = bigFont
-    ? '<span>가</span> 글자 작게'
-    : '<span>가</span> 글자 크게';
-}
 /* ── 포맷 유틸 ── */
 function won(v){
   const s=v<0?"-":"", a=Math.abs(Math.round(v));

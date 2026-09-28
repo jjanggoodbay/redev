@@ -3,131 +3,165 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>조합원 손익 계산기 — 창신동 재개발</title>
+<title>주택소유자 손익 계산기 — 창신동 재개발</title>
 <style>
 :root{
-  --bg:#080c10;--card:#111820;--card2:#161f2b;--card3:#0d1520;
-  --line:#1e2d3d;--text:#edf2f8;--muted:#6b85a0;
+  --bg:#080c10;--card:#111820;--card2:#161f2b;
+  --line:#1e2d3d;--text:#edf2f8;--muted:#8199b3;
   --red:#ff4d4d;--green:#2ecc8f;--amber:#f0b429;--blue:#4d9fff;--purple:#8b6fff;
-  --red-glow:rgba(255,77,77,.15);--green-glow:rgba(46,204,143,.15);
-  --amber-glow:rgba(240,180,41,.12);--blue-glow:rgba(77,159,255,.12);
+  --red-glow:rgba(255,77,77,.13);--green-glow:rgba(46,204,143,.13);
+  --amber-glow:rgba(240,180,41,.11);--blue-glow:rgba(77,159,255,.11);
 }
 *{box-sizing:border-box;margin:0;padding:0}
+html{overflow-x:hidden}
 body{
   background:var(--bg);color:var(--text);
   font-family:"Apple SD Gothic Neo","Malgun Gothic",Arial,sans-serif;
-  min-height:100vh;
+  min-height:100vh;overflow-x:hidden;word-break:keep-all;overflow-wrap:anywhere;
 }
+b{font-weight:800}
 
 /* ── 네비 ── */
 .top-nav{
   position:sticky;top:0;z-index:100;
-  background:rgba(8,12,16,.95);backdrop-filter:blur(16px);
+  background:rgba(8,12,16,.95);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
   border-bottom:1px solid var(--line);
-  padding:0 20px;height:52px;
-  display:flex;align-items:center;gap:4px;
+  padding:0 12px;height:52px;
+  display:flex;align-items:center;gap:2px;
 }
-.top-nav a{text-decoration:none;color:var(--muted);font-size:14px;padding:6px 12px;border-radius:8px;transition:color .15s,background .15s;white-space:nowrap}
+.top-nav a,.top-nav span.current{text-decoration:none;color:var(--muted);font-size:15px;padding:6px 10px;border-radius:8px;white-space:nowrap}
 .top-nav a:hover{color:var(--text);background:rgba(255,255,255,.05)}
-.top-nav .logo{color:var(--amber);font-weight:800;font-size:15px}
-.top-nav .sep{color:var(--line);padding:0 2px}
-.top-nav .current{color:var(--text);font-weight:700;pointer-events:none}
+.top-nav .logo{color:var(--amber);font-weight:800;font-size:16px}
+.top-nav .sep{color:var(--line)}
+.top-nav .current{color:var(--text);font-weight:700}
 
-.wrap{max-width:720px;margin:0 auto;padding:24px 16px 80px}
+.wrap{max-width:720px;margin:0 auto;padding:24px 16px 130px}
 
 /* ── 헤더 ── */
-.hdr{text-align:center;padding:32px 0 28px}
-.hdr h1{font-size:26px;font-weight:900;line-height:1.4}
-.hdr p{color:var(--muted);font-size:14px;margin-top:8px;line-height:1.7}
+.hdr{text-align:center;padding:28px 0 22px}
+.hdr h1{font-size:28px;font-weight:900;line-height:1.4}
+.hdr p{color:var(--muted);font-size:16px;margin-top:8px;line-height:1.7}
+
+/* ── 도구 버튼 ── */
+.tools{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:22px}
+.tools button{padding:11px 16px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--text);font-size:15px;font-weight:700;cursor:pointer;font-family:inherit}
+.tools button:active{background:var(--line)}
 
 /* ── 섹션 카드 ── */
-.section{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:24px;margin-bottom:12px}
-.sec-label{font-size:11px;font-weight:800;letter-spacing:.08em;color:var(--muted);margin-bottom:18px;text-transform:uppercase}
-.inp-row{margin-bottom:20px}
+.section{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:24px 20px;margin-bottom:12px}
+.sec-label{font-size:14px;font-weight:800;letter-spacing:.03em;color:var(--muted);margin-bottom:20px;line-height:1.5}
+.inp-row{margin-bottom:26px}
 .inp-row:last-child{margin-bottom:0}
-.inp-q{font-size:16px;font-weight:700;margin-bottom:8px;line-height:1.4;color:#d8e4f0}
+.inp-q{font-size:18px;font-weight:700;margin-bottom:8px;line-height:1.45;color:#dde7f2}
 .inp-q em{color:var(--amber);font-style:normal}
-.inp-val{font-size:28px;font-weight:900;color:var(--amber);margin-bottom:7px;line-height:1}
-.inp-sub{font-size:13px;color:var(--muted);margin-bottom:6px}
-input[type=range]{width:100%;height:7px;appearance:none;-webkit-appearance:none;background:var(--line);border-radius:99px;outline:none;cursor:pointer;touch-action:none}
-input[type=range]::-webkit-slider-thumb{appearance:none;width:26px;height:26px;background:var(--amber);border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,.5)}
-.inp-hint{font-size:12px;color:var(--muted);margin-top:5px;line-height:1.55}
+.inp-val{font-size:28px;font-weight:900;color:var(--amber);margin-bottom:10px;line-height:1.1}
+input[type=range]{width:100%;height:8px;appearance:none;-webkit-appearance:none;background:var(--line);border-radius:99px;outline:none;cursor:pointer;touch-action:none;margin:6px 0}
+input[type=range]::-webkit-slider-thumb{appearance:none;-webkit-appearance:none;width:28px;height:28px;background:var(--amber);border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,.5)}
+input[type=range]::-moz-range-thumb{width:28px;height:28px;background:var(--amber);border-radius:50%;border:none;box-shadow:0 2px 8px rgba(0,0,0,.5)}
+.inp-hint{font-size:14px;color:var(--muted);margin-top:8px;line-height:1.65}
+.divider{border:none;border-top:1px solid rgba(255,77,77,.25);margin:4px 0 24px}
 
-/* ── AI 버튼 ── */
-.ai-btn{
-  display:flex;align-items:center;gap:10px;
-  padding:12px 18px;border-radius:14px;border:1.5px solid rgba(139,111,255,.4);
-  background:rgba(139,111,255,.08);cursor:pointer;
-  font-size:14px;font-weight:700;color:#c4b5fd;
-  margin-bottom:16px;width:100%;transition:all .2s;
+/* ── 숫자 직접 입력 ── */
+.num-row{display:flex;align-items:center;gap:8px;margin-top:10px}
+.nb{width:46px;height:46px;border-radius:12px;border:1px solid var(--line);background:var(--card2);color:var(--text);font-size:24px;font-weight:700;cursor:pointer;flex-shrink:0;font-family:inherit;line-height:1}
+.nb:active{background:var(--line)}
+.ni{flex:1;min-width:0;height:46px;border-radius:12px;border:1px solid var(--line);background:#0a1017;color:var(--text);font-size:18px;font-weight:700;padding:0 12px;text-align:right;font-family:inherit}
+.ni:focus{outline:2px solid var(--amber);border-color:transparent}
+.nu{font-size:15px;color:var(--muted);flex-shrink:0;min-width:34px}
+
+/* ── 체크박스 ── */
+.check-row{display:flex;gap:12px;align-items:flex-start;margin-bottom:18px}
+.check-row input{width:24px;height:24px;accent-color:var(--amber);flex-shrink:0;margin-top:1px;cursor:pointer}
+.check-row label{font-size:17px;color:#d8e4f0;line-height:1.5;cursor:pointer}
+
+/* ── 용어 말풍선 (탭하면 열림) ── */
+.tip{border-bottom:1px dashed var(--amber);cursor:help;position:relative;display:inline-block}
+.tip::after{
+  content:attr(data-tip);position:absolute;bottom:calc(100% + 8px);left:0;
+  background:#1e2d3d;border:1px solid #2c4057;color:#e6eef8;
+  font-size:14px;font-weight:400;line-height:1.6;padding:10px 14px;border-radius:10px;
+  width:240px;max-width:calc(100vw - 48px);white-space:normal;
+  pointer-events:none;display:none;z-index:300;transform:translateX(var(--tx,0px));
 }
-.ai-btn:hover{background:rgba(139,111,255,.15);border-color:rgba(139,111,255,.6)}
-.ai-btn .ai-icon{font-size:20px}
-.ai-btn .ai-text{flex:1;text-align:left}
-.ai-btn .ai-badge{font-size:11px;background:rgba(139,111,255,.2);padding:3px 8px;border-radius:99px}
-.ai-result{
-  margin-top:10px;padding:14px 16px;border-radius:12px;
-  background:rgba(139,111,255,.06);border:1px solid rgba(139,111,255,.2);
-  font-size:13px;color:#c4b5fd;line-height:1.75;
-  display:none;
-}
-.ai-loading{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:13px}
-.ai-dots span{display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--purple);animation:dot 1.2s infinite;margin:0 2px}
-.ai-dots span:nth-child(2){animation-delay:.2s}
-.ai-dots span:nth-child(3){animation-delay:.4s}
-@keyframes dot{0%,80%,100%{opacity:.2;transform:scale(.8)}40%{opacity:1;transform:scale(1)}}
+.tip.open::after{display:block}
+.tip-mark{font-size:12px;color:var(--amber);margin-left:2px}
 
 /* ── 결과 카드 ── */
-.result-card{
-  border-radius:20px;padding:24px;margin-bottom:12px;border:2px solid var(--line);
-  background:var(--card);transition:border-color .3s;
-}
+.result-card{border-radius:20px;padding:24px 20px;margin-bottom:12px;border:2px solid var(--line);background:var(--card);transition:border-color .3s}
 .result-card.blue{background:var(--blue-glow);border-color:rgba(77,159,255,.4)}
 .result-card.green{background:var(--green-glow);border-color:rgba(46,204,143,.4)}
 .result-card.red{background:var(--red-glow);border-color:rgba(255,77,77,.4)}
 .result-card.amber{background:var(--amber-glow);border-color:rgba(240,180,41,.4)}
-.result-card.purple{background:rgba(139,111,255,.08);border-color:rgba(139,111,255,.4)}
-.rc-label{font-size:12px;color:var(--muted);font-weight:700;margin-bottom:10px;letter-spacing:.02em}
-.rc-big{font-size:46px;font-weight:900;line-height:1;word-break:keep-all}
-.rc-mid{font-size:28px;font-weight:900;line-height:1}
-.rc-sub{font-size:13px;color:var(--muted);margin-top:8px;line-height:1.7}
-.rc-row{display:flex;gap:16px;margin-top:12px;flex-wrap:wrap}
-.rc-item{flex:1;min-width:120px}
-.rc-item-label{font-size:11px;color:var(--muted);font-weight:700;margin-bottom:4px}
+.rc-label{font-size:15px;color:#b8c8da;font-weight:700;margin-bottom:10px}
+.rc-big{font-size:42px;font-weight:900;line-height:1.1;word-break:keep-all}
+.rc-mid{font-size:30px;font-weight:900;line-height:1.1}
+.rc-sub{font-size:15px;color:var(--muted);margin-top:10px;line-height:1.75}
+.rc-row{display:flex;gap:16px;margin-top:14px;flex-wrap:wrap}
+.rc-item{flex:1;min-width:130px}
+.rc-item-label{font-size:13px;color:var(--muted);font-weight:700;margin-bottom:4px}
 .rc-item-val{font-size:20px;font-weight:800}
+.breakdown{margin-top:14px;padding:14px 16px;border-radius:12px;background:rgba(0,0,0,.22);font-size:15px;line-height:1.9}
+.bd-row{display:flex;justify-content:space-between;gap:12px}
+.bd-row span:first-child{color:var(--muted)}
+.bd-row span:last-child{font-weight:800;white-space:nowrap}
+.bd-total{border-top:1px solid rgba(255,255,255,.1);margin-top:6px;padding-top:6px}
+.bd-small{font-size:13px;color:var(--muted);line-height:1.7;margin:2px 0 4px}
+
+/* ── 근거 패널 ── */
+.basis{margin-bottom:22px;border-radius:16px;border:1px solid rgba(139,111,255,.3);overflow:hidden}
+.basis-hd{padding:12px 16px;background:rgba(139,111,255,.12);font-size:15px;font-weight:800;color:#c9bcff}
+.basis-bd{padding:14px 16px;background:rgba(139,111,255,.04);font-size:14px;color:var(--muted);line-height:1.8;border-bottom:1px solid rgba(139,111,255,.12)}
+.basis-bd:last-child{border-bottom:none}
+.basis-bd b{color:var(--text)}
+.basis-bd a,.src a{color:#6fb0ff;text-decoration:none;font-weight:700}
 
 /* ── 위험도 ── */
-.risk-wrap{margin-top:12px}
 .risk-bar-track{height:12px;border-radius:99px;background:linear-gradient(to right,#ff2222,#ff7700,#ffcc00,#88dd00,#22cc77);position:relative;margin:10px 0}
-.risk-needle{position:absolute;top:50%;transform:translate(-50%,-50%);width:22px;height:22px;border-radius:50%;background:#fff;border:3px solid #fff;box-shadow:0 0 0 2px rgba(0,0,0,.4),0 3px 8px rgba(0,0,0,.5);transition:left .4s cubic-bezier(.4,0,.2,1)}
-.risk-labels{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);font-weight:700}
+.risk-needle{position:absolute;top:50%;transform:translate(-50%,-50%);width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 0 0 2px rgba(0,0,0,.4),0 3px 8px rgba(0,0,0,.5);transition:left .4s cubic-bezier(.4,0,.2,1)}
+.risk-labels{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);font-weight:700}
 .risk-stages{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
-.risk-stage{border-radius:14px;padding:14px 12px;text-align:center;border:1px solid var(--line);background:var(--card2)}
+.risk-stage{border-radius:14px;padding:14px 10px;text-align:center;border:1px solid var(--line);background:var(--card2)}
 .risk-stage .rs-icon{font-size:24px;margin-bottom:6px}
-.risk-stage .rs-label{font-size:12px;font-weight:800;margin-bottom:4px}
-.risk-stage .rs-desc{font-size:11px;color:var(--muted);line-height:1.5}
-.risk-stage.active{border-width:2px}
+.risk-stage .rs-label{font-size:15px;font-weight:800;margin-bottom:4px}
+.risk-stage .rs-desc{font-size:13px;color:var(--muted);line-height:1.5}
+.survive-box{margin-top:14px;padding:14px;border-radius:12px;font-size:15px;font-weight:700;text-align:center;line-height:1.7}
 
 /* ── 매도 시나리오 ── */
-.sell-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
-.sell-cell{border-radius:14px;padding:14px 12px;border:1.5px solid var(--line);background:var(--card2)}
-.sell-cell.zero{border-color:rgba(240,180,41,.6);background:var(--amber-glow);grid-column:1/-1}
-.sell-cell .sc-label{font-size:12px;color:var(--muted);font-weight:700;margin-bottom:5px}
-.sell-cell .sc-price{font-size:13px;color:var(--muted);margin-bottom:4px}
-.sell-cell .sc-pl{font-size:20px;font-weight:900}
+.sell-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px}
+.sell-cell{border-radius:14px;padding:14px 12px;border:1.5px solid var(--line);background:var(--card2);text-align:center}
+.sc-label{font-size:14px;font-weight:800;margin-bottom:6px}
+.sc-price{font-size:16px;font-weight:700;color:var(--text);margin-bottom:6px}
+.sc-pl{font-size:19px;font-weight:900}
+.sc-note{font-size:12px;color:var(--muted);margin-top:3px}
+.growth-box{margin-top:16px;padding:16px;border-radius:14px;background:rgba(139,111,255,.07);border:1px solid rgba(139,111,255,.25);font-size:15px;line-height:1.8;color:#dde5f5}
 
-/* ── AI 가능성 ── */
-.possibility-bar{
-  height:10px;border-radius:99px;background:var(--line);
-  margin:10px 0;overflow:hidden;
-}
-.possibility-fill{height:100%;border-radius:99px;background:linear-gradient(to right,var(--amber),var(--green));transition:width .5s}
+/* ── 조언 ── */
+.adv{border-radius:20px;padding:24px 20px;margin-bottom:12px;border:2px solid var(--line);background:var(--card)}
+.adv-title{font-size:21px;font-weight:900;margin-bottom:6px;line-height:1.35}
+.adv-sub{font-size:15px;color:var(--muted);margin-bottom:14px}
+.adv-line{font-size:15px;line-height:1.85;color:#d6e1ee;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.06)}
+.adv-line:last-child{border-bottom:none}
+
+.src{font-size:13px;color:var(--muted);line-height:1.8}
+.footer{text-align:center;color:var(--muted);font-size:13px;margin-top:28px;line-height:1.9}
+
+/* ── 하단 요약 바 ── */
+.sumbar{position:fixed;left:0;right:0;bottom:0;z-index:90;background:rgba(10,15,21,.97);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-top:1px solid var(--line);padding:10px 8px calc(10px + env(safe-area-inset-bottom));display:flex;justify-content:center;gap:4px}
+.sb-item{flex:1;max-width:220px;text-align:center}
+.sb-l{font-size:12px;color:var(--muted);font-weight:700;margin-bottom:2px}
+.sb-v{font-size:17px;font-weight:900;white-space:nowrap}
+#toast{position:fixed;left:50%;bottom:96px;transform:translate(-50%,16px);background:#24374c;color:#fff;padding:12px 18px;border-radius:12px;font-size:15px;opacity:0;pointer-events:none;transition:.25s;z-index:200;max-width:calc(100vw - 32px);text-align:center}
+#toast.show{opacity:1;transform:translate(-50%,0)}
 
 @media(max-width:520px){
+  .hdr h1{font-size:24px}
   .rc-big{font-size:34px}
   .risk-stages{grid-template-columns:1fr}
   .sell-grid{grid-template-columns:1fr}
-  .sell-cell.zero{grid-column:auto}
+  .top-nav .nav-other{display:none}
+}
+@media(max-width:360px){
+  .sb-v{font-size:15px}
 }
 </style>
 </head>
@@ -136,127 +170,147 @@ input[type=range]::-webkit-slider-thumb{appearance:none;width:26px;height:26px;b
 <nav class="top-nav">
   <a class="logo" href="index.html">🏠 홈</a>
   <span class="sep">›</span>
-  <a class="current" href="#">조합원 계산기</a>
+  <span class="current">주택소유자 계산기</span>
   <div style="flex:1"></div>
-  <a href="redev_building_v2.html">🏢 건물주</a>
+  <a class="nav-other" href="redev_building_v2.html">🏢 임대·상가 소유자 →</a>
 </nav>
 
 <div class="wrap">
 <div class="hdr">
-  <h1>조합원 손익 계산기</h1>
-  <p>종전자산과 분양가를 입력하면<br>대출·이자·버티기·수익까지 한 번에 확인합니다.</p>
+  <h1>주택소유자 손익 계산기</h1>
+  <p>내 집 감정평가액과 분양가를 넣으면<br>대출·이자·버티기·최종 손익까지 한 번에 확인합니다.</p>
 </div>
+
+<div class="tools">
+  <button type="button" onclick="shareLink()">🔗 결과 링크 복사</button>
+  <button type="button" onclick="resetAll()">↺ 처음 값으로</button>
+</div>
+<div class="inp-hint" style="text-align:center;margin:-10px 0 20px">슬라이더를 움직이거나, 숫자 칸을 눌러 <b style="color:var(--text)">직접 입력</b>하세요.<br>밑줄 친 용어는 누르면 설명이 나옵니다.</div>
 
 <!-- ① 내 상황 -->
 <div class="section">
-  <div class="sec-label">① 내 상황</div>
+  <div class="sec-label">① 내 집</div>
 
   <div class="inp-row">
-    <div class="inp-q"><em>종전자산가액</em>은?</div>
+    <div class="inp-q">내 집 <em><span class="tip" tabindex="0" data-tip="조합이 감정평가사를 통해 정한 내 집(토지+건물)의 가치입니다. 조합에서 문서로 통보해 줍니다. 보통 실제 시세보다 낮게 나옵니다.">감정평가액</span></em>은?</div>
     <div class="inp-val" id="v_appraisal"></div>
-    <input type="range" id="s_appraisal" min="50000000" max="2000000000" step="5000000" value="200000000">
-    <div class="inp-hint">감정평가액 기준 종전자산 총액 (조합에서 통보받은 금액)</div>
+    <input type="range" id="s_appraisal" data-u="won" min="50000000" max="2000000000" step="5000000" value="200000000">
+    <div class="inp-hint">조합에서 통보받은 금액 (종전자산가액). 이 계산기는 이 금액을 <b style="color:var(--text)">내 원금</b>으로 봅니다.</div>
   </div>
 
   <div class="inp-row">
-    <div class="inp-q">조합 <em>비례율</em>은?</div>
-    <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:7px">
-      <div class="inp-val" id="v_ratio"></div>
-      <div style="font-size:14px;color:var(--muted)" id="v_right_calc"></div>
+    <div class="inp-q">조합 <em><span class="tip" tabindex="0" data-tip="사업이 끝났을 때 얼마나 남는지를 나타내는 비율입니다. 100%면 감정평가액 그대로 인정, 80%면 20%가 깎여서 인정됩니다.">비례율</span></em>은?</div>
+    <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:10px">
+      <div class="inp-val" id="v_ratio" style="margin-bottom:0"></div>
+      <div style="font-size:16px;color:var(--muted)" id="v_right_calc"></div>
     </div>
-    <input type="range" id="s_ratio" min="60" max="130" step="1" value="100">
-    <div class="inp-hint">비례율이 낮을수록 권리가액이 줄고 대출이 늘어납니다. 통상 80~110%.</div>
+    <input type="range" id="s_ratio" data-u="pct" min="60" max="130" step="1" value="100">
+    <div class="inp-hint">비례율이 낮을수록 <span class="tip" tabindex="0" data-tip="감정평가액 × 비례율. 새 아파트를 받을 때 내 몫으로 인정되는 금액입니다.">권리가액</span>이 줄고, 그만큼 대출이 늘어납니다.</div>
   </div>
 </div>
 
-<!-- ② 새집 & 비용 -->
+<!-- ② 새 집 & 비용 -->
 <div class="section">
-  <div class="sec-label">② 새집 & 비용 조건</div>
+  <div class="sec-label">② 새 집 & 비용</div>
 
   <div class="inp-row">
     <div class="inp-q">조합원 <em>분양가</em>는?</div>
     <div class="inp-val" id="v_price"></div>
-    <input type="range" id="s_price" min="300000000" max="2000000000" step="10000000" value="900000000">
+    <input type="range" id="s_price" data-u="won" min="300000000" max="2000000000" step="10000000" value="900000000">
+    <div class="inp-hint">내가 받을 새 아파트의 조합원 분양가</div>
   </div>
 
   <div class="inp-row">
-    <div class="inp-q">적용 <em>취득세율</em>은?</div>
+    <div class="inp-q">적용 <em><span class="tip" tabindex="0" data-tip="새 아파트를 받을 때 내는 세금입니다. 주택 수와 지역에 따라 세율이 크게 달라집니다.">취득세율</span></em>은?</div>
     <div class="inp-val" id="v_acq_rate"></div>
-    <input type="range" id="s_acq_rate" min="0.5" max="12" step="0.1" value="2.8">
-    <div class="inp-hint">조합원 원시취득(재개발): 통상 <b>2.8%</b> · 1주택: 1~3% · 조정지역 2주택: 8% · 3주택+: 12%</div>
+    <input type="range" id="s_acq_rate" data-u="pct" min="0.5" max="12" step="0.1" value="2.8">
+    <div class="inp-hint">조합원 원시취득(재개발): 통상 <b>2.8%</b> · 1주택: 1~3% · 조정지역 2주택: 8% · 3주택 이상: 12%. 본인 상황에 맞게 조정하세요.</div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="inp-row">
+    <div class="inp-q">🚨 <em><span class="tip" tabindex="0" data-tip="처음 약속한 분양가에 더해, 공사비가 오르면 나중에 추가로 내야 하는 돈입니다.">추가 분담금</span></em> — 나중에 더 내야 하는 돈</div>
+    <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:10px">
+      <div class="inp-val" id="v_extra" style="margin-bottom:0"></div>
+      <div style="font-size:16px;font-weight:700;color:var(--red)" id="v_extra_pct"></div>
+    </div>
+    <input type="range" id="s_extra" data-u="won" min="0" max="500000000" step="5000000" value="0">
+    <div class="inp-hint" style="color:rgba(255,120,120,.85)">0원이면 지금 분양가 그대로. 넣으면 아래 모든 결과에 바로 반영됩니다.</div>
+
+    <button type="button" onclick="applyMarketData()" style="margin-top:14px;width:100%;padding:13px 16px;border-radius:12px;border:1.5px solid rgba(255,85,85,.35);background:rgba(255,85,85,.07);cursor:pointer;display:flex;align-items:center;gap:10px;text-align:left;font-family:inherit">
+      <span style="font-size:20px">📊</span>
+      <span style="flex:1">
+        <span style="display:block;font-size:15px;font-weight:800;color:#ff9f9f">공사비 상승 사례로 가정해보기</span>
+        <span style="display:block;font-size:13px;color:var(--muted);margin-top:2px">분양가의 25%를 추가 분담금으로 넣고, 근거 자료를 보여줍니다</span>
+      </span>
+      <span style="font-size:13px;color:var(--muted);white-space:nowrap">적용 ▶</span>
+    </button>
+
+    <div id="market_data_card" style="display:none;margin-top:12px;border-radius:14px;border:1px solid rgba(255,85,85,.2);overflow:hidden">
+      <div style="padding:12px 14px;background:rgba(255,85,85,.08);font-weight:800;color:#ff9f9f;font-size:15px">📊 정비사업 공사비 상승 자료</div>
+      <div style="padding:12px 14px;background:rgba(0,0,0,.15);line-height:1.95;color:var(--muted);font-size:14px">
+        <div>📅 <b style="color:var(--text)">전국 평균 공사비</b> 2020년 480만 → 2024년 770만원/평 <b style="color:var(--red)">(+60%)</b></div>
+        <div>🏙️ <b style="color:var(--text)">서울 평균</b> 750만 → 842만원/평</div>
+        <div>⚠️ <b style="color:var(--text)">사례</b> 잠실진주 <b style="color:var(--red)">+85%</b>, 홍제3구역 <b style="color:var(--red)">+75%</b></div>
+        <div>⏱️ <b style="color:var(--text)">구역지정→준공</b> 평균 <b style="color:var(--amber)">10.6년</b></div>
+        <div style="margin-top:6px;font-size:13px">※ "분양가의 25%"는 이 자료를 바탕으로 한 <b style="color:var(--text)">가정</b>입니다. 구역마다 크게 다릅니다.</div>
+        <div class="src" style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.06);display:flex;gap:14px;flex-wrap:wrap">
+          <a href="https://www.housingherald.co.kr/news/articleView.html?idxno=49460" target="_blank" rel="noopener">↗ 하우징헤럴드</a>
+          <a href="https://www.hankookilbo.com/News/Read/A2025011515490000857" target="_blank" rel="noopener">↗ 한국일보</a>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
-<!-- ━━━ 대출 강조 ━━━ -->
+<!-- 대출 -->
 <div class="result-card blue">
   <div class="rc-label">💳 이만큼 대출 받아야 합니다</div>
   <div class="rc-big" id="r_loan" style="color:var(--blue)">—</div>
   <div class="rc-sub" id="r_loan_sub"></div>
 </div>
 
-<!-- ③ 숨은 비용 -->
+<!-- ③ 공사 기간 & 이자 -->
 <div class="section">
-  <div class="sec-label">③ 공사 기간 & 이자 조건</div>
+  <div class="sec-label">③ 공사 기간 & 대출 금리</div>
 
-  <!-- 근거 패널 (항상 표시) -->
-  <div style="margin-bottom:20px;border-radius:16px;border:1px solid rgba(139,111,255,.3);overflow:hidden">
-    <!-- 헤더 -->
-    <div style="padding:12px 16px;background:rgba(139,111,255,.12);display:flex;align-items:center;gap:10px">
-      <span style="font-size:16px">📊</span>
-      <div>
-        <div style="font-size:13px;font-weight:800;color:#c4b5fd">서울 · 인근 10년 데이터 기반 자동 적용</div>
-        <div style="font-size:11px;color:var(--muted);margin-top:1px">슬라이더로 직접 수정 가능합니다</div>
-      </div>
+  <div class="basis">
+    <div class="basis-hd">📊 기본값은 이렇게 정했습니다 — 직접 바꿀 수 있어요</div>
+    <div class="basis-bd">
+      <b>⏱ 공사기간 7년</b> — 창신동 여건을 반영한 가정입니다.<br>
+      🏔️ 급경사 구릉지와 화강암 지반이라 굴착·발파가 어렵고,<br>
+      🏯 한양도성·흥인지문 주변이라 문화재 심의와 높이 제한을 받습니다.<br>
+      공사기간은 <b>이주부터 입주까지</b>로 넣으세요.
     </div>
-    <!-- 공사기간 근거 -->
-    <div style="padding:14px 16px;border-bottom:1px solid rgba(139,111,255,.12);background:rgba(139,111,255,.04)">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-        <span style="font-size:13px;font-weight:800;color:#c4b5fd">⏱ 공사기간 — 왜 7년인가?</span>
-        <span style="font-size:18px;font-weight:900;color:var(--amber)">7년</span>
-      </div>
-      <div style="display:flex;flex-direction:column;gap:6px">
-        <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted)">🏔️ <b style="color:var(--text)">구릉지·돌산</b> — 경사지형으로 굴착 난이도가 높고 장비 진입이 제한됩니다.</div>
-        <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted)">🪨 <b style="color:var(--text)">지하 화강암</b> — 암반 발파 공정이 추가되어 일반 토지 대비 1년 이상 지연됩니다.</div>
-        <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted)">🏯 <b style="color:var(--text)">한양도성 문화재</b> — 문화재청 심의와 이격거리 제한으로 설계 변경이 반복됩니다.</div>
-        <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted)">📍 <b style="color:var(--text)">서울 평균(5~6년)</b> 대비 <b style="color:var(--amber)">+1~2년 가산</b> 적용한 현실적 수치입니다.</div>
-      </div>
-    </div>
-    <!-- 금리 근거 -->
-    <div style="padding:14px 16px;background:rgba(139,111,255,.04)">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-        <span style="font-size:13px;font-weight:800;color:#c4b5fd">💰 대출금리 — 왜 4%인가?</span>
-        <span style="font-size:18px;font-weight:900;color:var(--amber)">연 4%</span>
-      </div>
-      <div style="display:flex;flex-direction:column;gap:6px">
-        <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted)">📉 <b style="color:#93c5fd">저금리 2019~21</b> — 코로나 완화기, 주담대 평균 2.8% 수준이었습니다.</div>
-        <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted)">📈 <b style="color:var(--red)">고금리 2022~23</b> — 급격한 기준금리 인상으로 주담대 평균 5.2%까지 올랐습니다.</div>
-        <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted)">⚖️ <b style="color:var(--amber)">10년 평균 4.0%</b> — 공사 기간 중 금리 변동을 평준화한 가장 현실적인 수치입니다.</div>
-      </div>
+    <div class="basis-bd">
+      <b>💰 대출금리 연 4.3%</b> — 한국은행 발표 2026년 3월 은행 신규 주택담보대출 평균 금리가 <b>연 4.34%</b>입니다.
+      <span class="src"><a href="https://v.daum.net/v/20260428142308732" target="_blank" rel="noopener">↗ 출처</a></span><br>
+      공사 기간 중 금리가 오르내릴 수 있으니 여러 값으로 바꿔보세요.
     </div>
   </div>
 
   <div class="inp-row">
     <div class="inp-q"><em>공사기간</em>은 몇 년?</div>
     <div class="inp-val" id="v_const"></div>
-    <input type="range" id="s_const" min="1" max="15" step="1" value="7">
-    <div class="inp-hint">이주부터 입주까지. 위 근거와 다르게 판단된다면 직접 조정하세요.</div>
+    <input type="range" id="s_const" data-u="yr" min="1" max="15" step="1" value="7">
   </div>
 
   <div class="inp-row">
-    <div class="inp-q"><em>대출금리</em> (연 %)</div>
+    <div class="inp-q"><em>대출금리</em> (연)</div>
     <div class="inp-val" id="v_rate"></div>
-    <input type="range" id="s_rate" min="2" max="9" step="0.1" value="4">
+    <input type="range" id="s_rate" data-u="pct" min="1" max="9" step="0.1" value="4.3">
   </div>
 </div>
 
-<!-- ━━━ 이자 강조 ━━━ -->
+<!-- 이자 -->
 <div class="result-card red">
-  <div class="rc-label">🏦 입주까지 내야 할 총 이자</div>
+  <div class="rc-label">🏦 입주까지 내야 할 분양 대출 이자</div>
   <div class="rc-big" id="r_interest" style="color:var(--red)">—</div>
   <div class="rc-row">
     <div class="rc-item">
       <div class="rc-item-label">매달 나가는 이자</div>
-      <div class="rc-item-val" id="r_monthly_interest" style="color:var(--red)">—</div>
+      <div class="rc-item-val" id="r_monthly_interest">—</div>
     </div>
     <div class="rc-item">
       <div class="rc-item-label">공사기간</div>
@@ -266,185 +320,249 @@ input[type=range]::-webkit-slider-thumb{appearance:none;width:26px;height:26px;b
   <div class="rc-sub" id="r_interest_sub"></div>
 </div>
 
-<!-- ④ 기회비용 -->
+<!-- ④ 이주 기간 거주 -->
 <div class="section">
-  <div class="sec-label">④ 기회비용 — 공사 기간 사라지는 수입</div>
+  <div class="sec-label">④ 공사 기간 동안 어디서 사나요?</div>
+
+  <div class="check-row">
+    <input type="checkbox" id="chk_live" checked>
+    <label for="chk_live">지금 이 집에 <b>직접 살고 있어요</b> (공사 기간에 다른 곳에서 살아야 함)</label>
+  </div>
+
+  <div id="temp_wrap">
+    <div class="inp-row">
+      <div class="inp-q">공사 기간 <em>임시 거주비</em> (월)</div>
+      <div class="inp-val" id="v_temp"></div>
+      <input type="range" id="s_temp" data-u="won" min="0" max="5000000" step="50000" value="1000000">
+      <div class="inp-hint">월세 + 관리비. 이주비 대출로 전세를 구한다면 관리비 정도만 넣으세요.</div>
+    </div>
+  </div>
+
   <div class="inp-row">
-    <div class="inp-q">사업지 내 현재 <em>월 임대수익</em>은?</div>
-    <div class="inp-val" id="v_rent"></div>
-    <input type="range" id="s_rent" min="0" max="5000000" step="50000" value="0">
-    <div class="inp-hint">임대 중인 경우 월세 수입 입력. 공사 기간 내내 이 금액이 사라집니다.</div>
+    <div class="inp-q"><em><span class="tip" tabindex="0" data-tip="이사 나갈 집을 구하라고 조합이 알선해 주는 대출입니다. 원금은 입주 때 갚아야 하고, 그동안 이자가 나갑니다.">이주비 대출</span></em> — 감정평가액의 몇 %?</div>
+    <div class="inp-val" id="v_move_pct"></div>
+    <input type="range" id="s_move_pct" data-u="pct" min="0" max="70" step="5" value="0">
+    <div class="inp-hint">안 받으면 0%. 한도는 조합·규제에 따라 다르니 조합 공지를 확인하세요.</div>
+  </div>
+
+  <div class="inp-row">
+    <div class="inp-q">이주비 대출 <em>금리</em> (연)</div>
+    <div class="inp-val" id="v_move_rate"></div>
+    <input type="range" id="s_move_rate" data-u="pct" min="0" max="9" step="0.1" value="4.3">
+    <div class="inp-hint">조합이 이자를 대신 내주는 '무이자' 부분이 있다면 그만큼 낮춰 넣으세요.</div>
   </div>
 </div>
 
-<!-- ━━━ 기회비용 결과 ━━━ -->
-<div class="result-card" id="rent_card" style="display:none">
-  <div class="rc-label">🏠 공사 기간 사라지는 임대수입</div>
+<!-- 이주 비용 -->
+<div class="result-card" id="move_card">
+  <div class="rc-label">🚚 공사 기간 이주 비용</div>
+  <div class="rc-mid" id="r_move_total">—</div>
+  <div class="rc-sub" id="r_move_sub"></div>
+</div>
+
+<!-- ⑤ 기회비용 -->
+<div class="section">
+  <div class="sec-label">⑤ 공사 기간 사라지는 임대 수입</div>
+  <div class="inp-row">
+    <div class="inp-q">이 집에서 받는 <em>월 임대수익</em>은?</div>
+    <div class="inp-val" id="v_rent"></div>
+    <input type="range" id="s_rent" data-u="won" min="0" max="5000000" step="50000" value="0">
+    <div class="inp-hint">세를 주고 있다면 월세를 넣으세요. 없으면 0원. 공사 기간 내내 이 수입이 사라집니다.</div>
+  </div>
+</div>
+
+<div class="result-card red" id="rent_card" style="display:none">
+  <div class="rc-label">🏠 공사 기간 사라지는 임대 수입</div>
   <div class="rc-mid" id="r_rent_loss" style="color:var(--red)">—</div>
   <div class="rc-sub" id="r_rent_loss_sub"></div>
 </div>
 
-<!-- ⑤ 월 버티기 -->
+<!-- ⑥ 월 버티기 -->
 <div class="section">
-  <div class="sec-label">⑤ 월 얼마를 벌어야 이주~입주 기간을 버틸 수 있나?</div>
+  <div class="sec-label">⑥ 공사 기간을 버틸 수 있나?</div>
 
   <div class="inp-row">
-    <div class="inp-q"><em>월 수입</em> (임대수익 제외)</div>
+    <div class="inp-q"><em>월 수입</em> (임대 수입 빼고)</div>
     <div class="inp-val" id="v_income"></div>
-    <input type="range" id="s_income" min="0" max="10000000" step="100000" value="3000000">
-    <div class="inp-hint">근로소득, 사업소득 등 임대 외 월 수입</div>
+    <input type="range" id="s_income" data-u="won" min="0" max="10000000" step="100000" value="3000000">
+    <div class="inp-hint">월급, 사업소득, 연금 등</div>
   </div>
 
   <div class="inp-row">
-    <div class="inp-q"><em>월 생활비</em>는?</div>
+    <div class="inp-q"><em>월 생활비</em>는? (거주비 빼고)</div>
     <div class="inp-val" id="v_living"></div>
-    <input type="range" id="s_living" min="500000" max="8000000" step="100000" value="2000000">
+    <input type="range" id="s_living" data-u="won" min="0" max="8000000" step="100000" value="2000000">
+    <div class="inp-hint">식비·교통·통신·보험 등. 임시 거주비는 ④에서 따로 계산합니다.</div>
   </div>
 </div>
 
-<!-- ━━━ 버티기 판정 ━━━ -->
 <div class="result-card" id="survive_card">
-  <div class="rc-label">💪 공사 기간 월 현금흐름</div>
-  <div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap">
+  <div class="rc-label">💪 공사 기간 매달 남거나 모자라는 돈</div>
+  <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap">
     <div class="rc-big" id="r_monthly_net">—</div>
-    <div style="font-size:16px;color:var(--muted)">/월</div>
+    <div style="font-size:17px;color:var(--muted)">/월</div>
   </div>
   <div class="rc-sub" id="r_monthly_net_sub"></div>
 
-  <!-- 위험도 바 -->
-  <div class="risk-wrap">
-    <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:4px">
-      <span>위험</span><span>안전</span>
-    </div>
-    <div class="risk-bar-track">
-      <div class="risk-needle" id="risk_needle" style="left:50%;"></div>
-    </div>
-    <div class="risk-labels">
-      <span>한계</span><span>빠듯</span><span>보통</span><span>여유</span><span>안정</span>
-    </div>
+  <div style="margin-top:12px">
+    <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin-bottom:4px"><span>위험</span><span>안전</span></div>
+    <div class="risk-bar-track"><div class="risk-needle" id="risk_needle" style="left:50%"></div></div>
+    <div class="risk-labels"><span>한계</span><span>빠듯</span><span>보통</span><span>여유</span><span>안정</span></div>
   </div>
 
-  <!-- 단계별 그래픽 -->
-  <div class="risk-stages" id="risk_stages">
-    <div class="risk-stage" id="rs_danger">
-      <div class="rs-icon">🚨</div>
-      <div class="rs-label" style="color:var(--red)">위험</div>
-      <div class="rs-desc">매달 적자. 현금 소진 후 대출 연체 위험</div>
-    </div>
-    <div class="risk-stage" id="rs_warn">
-      <div class="rs-icon">⚠️</div>
-      <div class="rs-label" style="color:var(--amber)">주의</div>
-      <div class="rs-desc">빠듯하게 버팀. 예상치 못한 지출 시 위험</div>
-    </div>
-    <div class="risk-stage" id="rs_safe">
-      <div class="rs-icon">✅</div>
-      <div class="rs-label" style="color:var(--green)">안정</div>
-      <div class="rs-desc">월 흑자. 공사 기간 현금흐름 안정적</div>
-    </div>
+  <div class="risk-stages">
+    <div class="risk-stage" id="rs_danger"><div class="rs-icon">🚨</div><div class="rs-label" style="color:var(--red)">위험</div><div class="rs-desc">매달 50만원 넘게 적자</div></div>
+    <div class="risk-stage" id="rs_warn"><div class="rs-icon">⚠️</div><div class="rs-label" style="color:var(--amber)">주의</div><div class="rs-desc">매달 조금씩 적자</div></div>
+    <div class="risk-stage" id="rs_safe"><div class="rs-icon">✅</div><div class="rs-label" style="color:var(--green)">안정</div><div class="rs-desc">매달 흑자</div></div>
   </div>
-  <div style="margin-top:12px;padding:14px;border-radius:12px;font-size:14px;font-weight:700;text-align:center" id="survive_box"></div>
+  <div class="survive-box" id="survive_box"></div>
 </div>
 
-<!-- ⑥ 얼마나 벌 수 있나 -->
+<!-- ⑦ 매도 -->
 <div class="section">
-  <div class="sec-label">⑥ 그래서 얼마에 팔면 얼마나 벌 수 있나?</div>
+  <div class="sec-label">⑦ 그래서 얼마에 팔면 얼마가 남나?</div>
 
   <div class="inp-row">
     <div class="inp-q">예상 <em>매도가</em>는?</div>
-    <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:7px">
-      <div class="inp-val" id="v_sell"></div>
+    <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:10px">
+      <div class="inp-val" id="v_sell" style="margin-bottom:0"></div>
       <div style="font-size:15px;font-weight:700" id="v_sell_pl"></div>
     </div>
-    <input type="range" id="s_sell" min="600000000" max="2000000000" step="10000000" value="900000000">
-    <div class="inp-hint">6억 ~ 20억 범위</div>
+    <input type="range" id="s_sell" data-u="won" min="100000000" max="3000000000" step="10000000" value="900000000">
   </div>
 
   <div class="inp-row">
     <div class="inp-q">입주 후 <em>몇 년 뒤</em>에 팔 건가요?</div>
     <div class="inp-val" id="v_hold"></div>
-    <input type="range" id="s_hold" min="0" max="10" step="1" value="2">
-    <div class="inp-hint">보유기간이 길수록 시세 상승 가능성↑ / 이자 부담도 추가</div>
+    <input type="range" id="s_hold" data-u="yr" min="0" max="15" step="1" value="2">
+    <div class="inp-hint">오래 가지고 있을수록 대출 이자와 보유 비용이 계속 나갑니다.</div>
+  </div>
+
+  <div class="inp-row">
+    <div class="inp-q">입주 후 <em>보유 비용</em> (월)</div>
+    <div class="inp-val" id="v_hold_cost"></div>
+    <input type="range" id="s_hold_cost" data-u="won" min="0" max="2000000" step="10000" value="300000">
+    <div class="inp-hint">재산세·종부세를 12개월로 나눈 금액 + 관리비</div>
+  </div>
+
+  <div class="inp-row">
+    <div class="inp-q"><em><span class="tip" tabindex="0" data-tip="집을 팔아 남긴 차익에 매기는 세금입니다. 1세대 1주택으로 비과세 요건을 채우면 0원일 수 있지만, 조합원 입주권·다주택·고가주택 여부에 따라 크게 달라집니다.">양도세</span></em> — 차익의 몇 %?</div>
+    <div class="inp-val" id="v_cgt"></div>
+    <input type="range" id="s_cgt" data-u="pct" min="0" max="60" step="1" value="0">
+    <div class="inp-hint">비과세 대상이면 0%. 아니라면 세무사와 확인 후 대략적인 비율을 넣으세요. (차익 = 매도가 − 분양가 − 추가 분담금으로 단순 계산)</div>
+  </div>
+
+  <div class="inp-row">
+    <div class="inp-q">예상하는 <em>집값 상승률</em> (연)</div>
+    <div class="inp-val" id="v_growth"></div>
+    <input type="range" id="s_growth" data-u="pct" min="-5" max="15" step="0.5" value="3">
+    <div class="inp-hint">내가 예상하는 값을 넣으세요. 과거에 올랐다고 앞으로도 오른다는 보장은 없습니다.</div>
   </div>
 </div>
 
-<!-- ━━━ 매도 결과 ━━━ -->
 <div class="result-card" id="profit_card">
-  <div class="rc-label">💰 팔았을 때 원금 대비 손익</div>
+  <div class="rc-label">💰 팔았을 때 원금(감정평가액) 대비 손익</div>
   <div class="rc-big" id="r_profit">—</div>
-  <div class="rc-sub" id="r_profit_sub"></div>
-
-  <!-- 본전 기준 그리드 -->
-  <div class="sell-grid" id="sell_grid" style="margin-top:16px"></div>
-
-  <!-- 종로구 상승률 기반 가능성 -->
-  <div style="margin-top:16px;padding:16px;background:rgba(139,111,255,.06);border-radius:14px;border:1px solid rgba(139,111,255,.2)" id="ai_possibility_wrap">
-    <div style="font-size:12px;font-weight:800;color:#a89dd4;margin-bottom:8px">📊 종로구 10년 평균 상승률 기반 실현 가능성</div>
-    <div style="font-size:13px;color:var(--text);margin-bottom:10px;line-height:1.7" id="ai_possibility_text">—</div>
-    <div class="possibility-bar"><div class="possibility-fill" id="ai_possibility_bar" style="width:0%"></div></div>
-    <div style="font-size:16px;font-weight:900;margin-top:6px" id="ai_possibility_pct"></div>
-    <div style="font-size:11px;color:var(--muted);margin-top:6px" id="ai_possibility_detail"></div>
-  </div>
+  <div id="r_profit_break"></div>
+  <div class="sell-grid" id="sell_grid"></div>
+  <div class="growth-box" id="growth_box"></div>
 </div>
 
-
-<!-- ━━━ 상황별 조언 카드 ━━━ -->
-<div id="advisory_card" style="border-radius:20px;padding:26px;margin-bottom:12px;border:2px solid var(--line);background:var(--card)">
-  <div id="advisory_title" style="font-size:20px;font-weight:900;margin-bottom:6px;line-height:1.3"></div>
-  <div id="advisory_sub" style="font-size:13px;color:var(--muted);margin-bottom:18px"></div>
+<!-- 조언 -->
+<div class="adv" id="advisory_card">
+  <div class="adv-title" id="advisory_title"></div>
+  <div class="adv-sub" id="advisory_sub"></div>
   <div id="advisory_content"></div>
 </div>
 
-<!-- ━━━ 추가 분담금 시뮬레이션 ━━━ -->
-<div style="background:var(--card);border:1.5px solid rgba(255,85,85,.3);border-radius:20px;padding:22px;margin-bottom:12px">
-  <div style="font-size:13px;font-weight:800;color:#ff9999;margin-bottom:4px">🚨 추가 분담금 시뮬레이션</div>
-  <div style="font-size:12px;color:var(--muted);margin-bottom:16px">공사 중 더 내야 하는 돈이 생기면 손익이 얼마나 달라질까요?</div>
-
-  <div class="inp-row" style="margin-bottom:0">
-    <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:8px">
-      <div class="inp-val" id="v_extra" style="margin-bottom:0;color:var(--muted)">없음 (0원)</div>
-      <div style="font-size:14px;font-weight:700;color:var(--red)" id="v_extra_pct"></div>
-    </div>
-    <input type="range" id="s_extra" min="0" max="500000000" step="5000000" value="0">
-
-    <button onclick="applyMarketData()" style="
-      margin-top:14px;width:100%;padding:12px 16px;border-radius:12px;
-      border:1.5px solid rgba(255,85,85,.35);background:rgba(255,85,85,.07);
-      cursor:pointer;display:flex;align-items:center;gap:10px;text-align:left;
-    ">
-      <span style="font-size:18px">📊</span>
-      <div style="flex:1">
-        <div style="font-size:13px;font-weight:800;color:#ff9999">서울 정비사업 평균 적용</div>
-        <div style="font-size:11px;color:var(--muted);margin-top:2px">2020→2024 공사비 +60% 기준 · 클릭하면 출처 확인</div>
-      </div>
-      <span style="font-size:11px;color:var(--muted);white-space:nowrap">적용 ▶</span>
-    </button>
-
-    <div id="market_data_card" style="display:none;margin-top:12px;border-radius:14px;border:1px solid rgba(255,85,85,.2);overflow:hidden;font-size:12px">
-      <div style="padding:12px 14px;background:rgba(255,85,85,.08);font-weight:800;color:#ff9999;font-size:13px">
-        📊 서울 정비사업 공사비 현황
-      </div>
-      <div style="padding:12px 14px;background:rgba(0,0,0,.15);line-height:2;color:var(--muted)">
-        <div>📅 <b style="color:var(--text)">전국 평균</b> 2020년 480만 → 2024년 770만 <b style="color:var(--red)">(+60%)</b></div>
-        <div>🏙️ <b style="color:var(--text)">서울 평균</b> 750만 → 842만 <b style="color:var(--red)">(+12.3%/년)</b></div>
-        <div>⚠️ <b style="color:var(--text)">실제 사례</b> 잠실진주 <b style="color:var(--red)">+85%</b>, 홍제3구역 <b style="color:var(--red)">+75%</b></div>
-        <div>⏱️ <b style="color:var(--text)">공사기간 평균</b> 구역지정→준공 <b style="color:var(--amber)">10.6년</b>, 지연 시 15년+</div>
-        <div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.06);display:flex;gap:12px;flex-wrap:wrap">
-          <a href="https://www.housingherald.co.kr/news/articleView.html?idxno=49460" target="_blank" style="color:#4d9fff;text-decoration:none;font-weight:700">↗ 주거환경연구원</a>
-          <a href="https://www.hankookilbo.com/News/Read/A2025011515490000857" target="_blank" style="color:#4d9fff;text-decoration:none;font-weight:700">↗ 한국일보</a>
-        </div>
-      </div>
-    </div>
-    <div class="inp-hint" style="color:rgba(255,85,85,.7);margin-top:10px">슬라이더를 올리면 위의 모든 결과가 즉시 반영됩니다.</div>
-  </div>
+<div class="footer">
+  주택소유자 손익 계산기 v3.0<br>
+  이 계산기는 개인 판단을 돕기 위한 참고용이며, 실제 결과와 다를 수 있습니다.<br>
+  세금은 개인 상황에 따라 크게 다르니 세무사와 꼭 확인하세요.
 </div>
-
 </div><!-- /wrap -->
 
+<!-- 하단 요약 바 -->
+<div class="sumbar">
+  <div class="sb-item"><div class="sb-l">대출</div><div class="sb-v" id="sb_loan">—</div></div>
+  <div class="sb-item"><div class="sb-l">공사 중 매달</div><div class="sb-v" id="sb_month">—</div></div>
+  <div class="sb-item"><div class="sb-l">팔면 최종 손익</div><div class="sb-v" id="sb_profit">—</div></div>
+</div>
+<div id="toast"></div>
+
 <script>
-/* ══════════════════════
-   유틸
-══════════════════════ */
+/* ══════════ 공통: 숫자 직접 입력 · 링크 공유 · 용어 말풍선 ══════════ */
+const UNITS={won:{m:10000,l:"만원"},pct:{m:1,l:"%"},yr:{m:1,l:"년"},mo:{m:1,l:"개월"},ppl:{m:1,l:"명"}};
+function el(id){return document.getElementById(id);}
+function n(id){const r=el(id);return (r.dataset.x!==undefined&&r.dataset.x!=="")?Number(r.dataset.x):Number(r.value);}
+function fmtNum(v){return (Math.round(v*100)/100).toLocaleString("ko-KR");}
+function setVal(r,v){
+  v=Math.round(v*1000)/1000;
+  if(v>Number(r.max)) r.max=v;
+  if(v<Number(r.min)) v=Number(r.min);
+  r.value=v; r.dataset.x=v;
+  if(r._sync) r._sync();
+}
+function enhanceInputs(){
+  document.querySelectorAll("input[type=range][data-u]").forEach(r=>{
+    const u=UNITS[r.dataset.u];
+    const row=document.createElement("div"); row.className="num-row";
+    row.innerHTML=`<button type="button" class="nb" aria-label="줄이기">−</button><input class="ni" type="text" inputmode="decimal" aria-label="직접 입력"><span class="nu">${u.l}</span><button type="button" class="nb" aria-label="늘리기">+</button>`;
+    r.insertAdjacentElement("afterend",row);
+    const btn=row.querySelectorAll("button"), inp=row.querySelector("input");
+    r._sync=()=>{inp.value=fmtNum(n(r.id)/u.m);};
+    r.addEventListener("input",()=>{delete r.dataset.x; r._sync();});
+    inp.addEventListener("focus",()=>inp.select());
+    inp.addEventListener("keydown",e=>{if(e.key==="Enter") inp.blur();});
+    inp.addEventListener("change",()=>{
+      const v=parseFloat(inp.value.replace(/[^0-9.\-]/g,""));
+      if(isNaN(v)){r._sync();return;}
+      setVal(r,v*u.m); calc();
+    });
+    const step=Number(r.step);
+    btn[0].onclick=()=>{setVal(r,Math.max(Number(r.min),n(r.id)-step));calc();};
+    btn[1].onclick=()=>{setVal(r,n(r.id)+step);calc();};
+    r._sync();
+  });
+}
+function stateStr(){
+  const p=[];
+  document.querySelectorAll("input[type=range]").forEach(r=>p.push(r.id+"="+n(r.id)));
+  document.querySelectorAll("input[type=checkbox]").forEach(c=>p.push(c.id+"="+(c.checked?1:0)));
+  return p.join("&");
+}
+function loadState(){
+  const h=location.hash.slice(1); if(!h) return;
+  h.split("&").forEach(kv=>{
+    const [k,v]=kv.split("="); const e=el(k); if(!e) return;
+    if(e.type==="checkbox") e.checked=(v==="1");
+    else if(e.type==="range"){const x=Number(v); if(!isNaN(x)) setVal(e,x);}
+  });
+}
+function toast(msg){const t=el("toast");t.textContent=msg;t.classList.add("show");clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove("show"),2600);}
+function shareLink(){
+  const url=location.href.split("#")[0]+"#"+stateStr();
+  const ok=()=>toast("🔗 링크를 복사했어요. 카톡·문자에 붙여넣으면 이 결과 그대로 열립니다");
+  if(navigator.clipboard&&window.isSecureContext) navigator.clipboard.writeText(url).then(ok,()=>prompt("아래 링크를 복사하세요",url));
+  else prompt("아래 링크를 복사하세요",url);
+}
+function resetAll(){history.replaceState(null,"",location.pathname);location.reload();}
+document.addEventListener("click",e=>{
+  const t=e.target.closest(".tip");
+  document.querySelectorAll(".tip.open").forEach(x=>{if(x!==t) x.classList.remove("open");});
+  if(t){
+    t.classList.toggle("open");
+    const r=t.getBoundingClientRect(), w=Math.min(240,innerWidth-48);
+    let off=0;
+    if(r.left+w>innerWidth-16) off=innerWidth-16-w-r.left;
+    if(r.left+off<16) off=16-r.left;
+    t.style.setProperty("--tx",off+"px");
+  }
+});
+
+/* ══════════ 표시 유틸 ══════════ */
 function won(v){
+  v=Math.round(v);
   const s=v<0?"-":"",a=Math.abs(v);
   const e=Math.floor(a/100000000),m=Math.round((a%100000000)/10000);
   if(e>0&&m>0)return s+e+"억 "+m.toLocaleString()+"만원";
@@ -452,333 +570,291 @@ function won(v){
   return s+m.toLocaleString()+"만원";
 }
 function wonS(v){
+  v=Math.round(v);
   const s=v<0?"-":"",a=Math.abs(v);
   const e=Math.floor(a/100000000),m=Math.round((a%100000000)/10000);
   if(e>0&&m>0)return s+e+"억 "+m.toLocaleString()+"만";
   if(e>0)return s+e+"억";
-  return s+m.toLocaleString()+"만원";
+  return s+m.toLocaleString()+"만";
 }
-function n(id){return Number(document.getElementById(id).value);}
-function el(id){return document.getElementById(id);}
+function signed(v,f){return (v>=0?"+":"")+(f||won)(v);}
+function pctStr(v){return (Math.round(v*10)/10).toString()+"%";}
 
-/* 시장 데이터 적용 버튼 */
+/* 공사비 상승 가정 버튼 */
 function applyMarketData(){
-  const price = n("s_price");
-  // 서울 정비사업 평균: 공사비 60% 상승 → 분양가의 약 25% 추가분담금 추정
-  const estimated = Math.round(price * 0.25 / 5000000) * 5000000;
-  el("s_extra").value = Math.min(estimated, 500000000);
-
-  // 출처 카드 토글
-  const card = el("market_data_card");
-  card.style.display = card.style.display === "none" ? "block" : "none";
-
+  const est=Math.round(n("s_price")*0.25/5000000)*5000000;
+  setVal(el("s_extra"),est);
+  el("market_data_card").style.display="block";
   calc();
+  toast("추가 분담금 "+won(est)+"을 넣었습니다");
 }
 
-
-// 종로구 10년 평균 연 상승률 (실거래가 기반, 약 6%)
-const JONGNO_ANNUAL_RATE = 0.06;
-const NEARBY_PRICE_PER_PYEONG = 3800; // 창신·숭인 인근 평당 만원
-
-function updatePossibility(price, sellP, holdYears, rate, loan, constY){
-  const wrap = el("ai_possibility_wrap");
-
-  // 입주 후 holdYears 보유 시 종로구 상승률로 예상되는 시세
-  const expectedPrice = price * Math.pow(1 + JONGNO_ANNUAL_RATE, holdYears);
-  // 입주 후 보유 기간 추가 이자
-  const holdInterest  = loan * (rate/100) * holdYears;
-
-  // 가능성 계산: 예상 시세 대비 목표 매도가 비율
-  // 목표가 ≤ 예상시세 → 높은 가능성 / 목표가 > 예상시세 → 낮은 가능성
-  let pct;
-  const ratio = sellP / expectedPrice;
-  if(ratio <= 0.85)       pct = 95;
-  else if(ratio <= 0.95)  pct = 85;
-  else if(ratio <= 1.0)   pct = 72;
-  else if(ratio <= 1.08)  pct = 58;
-  else if(ratio <= 1.15)  pct = 42;
-  else if(ratio <= 1.25)  pct = 28;
-  else if(ratio <= 1.40)  pct = 15;
-  else                    pct = 6;
-
-  // 보유기간이 길수록 상승 가능성 소폭 보정 (+2%/년, 최대 +15%)
-  pct = Math.min(95, pct + Math.min(holdYears * 2, 15));
-
-  el("ai_possibility_bar").style.width = pct + "%";
-  const pctEl = el("ai_possibility_pct");
-  pctEl.textContent = pct + "% 가능성";
-  pctEl.style.color = pct >= 65 ? "var(--green)" : pct >= 40 ? "var(--amber)" : "var(--red)";
-
-  // 텍스트 설명
-  const holdStr = holdYears === 0 ? "입주 즉시" : `입주 후 ${holdYears}년 보유`;
-  el("ai_possibility_text").innerHTML =
-    `종로구 연 ${(JONGNO_ANNUAL_RATE*100).toFixed(0)}% 상승률 적용 시 <b style="color:var(--amber)">${holdStr}</b> 예상 시세 <b>${wonS(Math.round(expectedPrice))}</b><br>`+
-    `목표 매도가 <b style="color:${sellP<=expectedPrice?"var(--green)":"var(--red)"}">${wonS(sellP)}</b>는 예상 시세 대비 <b>${(ratio*100).toFixed(0)}%</b> 수준`;
-
-  el("ai_possibility_detail").innerHTML =
-    holdInterest > 0
-      ? `⚠️ 입주 후 ${holdYears}년 보유 시 추가 이자 <b style="color:var(--red)">${wonS(Math.round(holdInterest))}</b> 발생 (보유할수록 이자 부담 누적)`
-      : `입주 즉시 매도 시 추가 이자 없음`;
-}
-
-/* ══════════════════════
-   메인 계산
-══════════════════════ */
+/* ══════════ 메인 계산 ══════════ */
 function calc(){
-  const appraisal  = n("s_appraisal");
-  const ratio      = n("s_ratio");
-  const right      = Math.round(appraisal * ratio / 100);
-  const price      = n("s_price");
-  const acqTaxRate = n("s_acq_rate") / 100;
-  const constY     = n("s_const");
-  const rate       = n("s_rate");
-  const rent       = n("s_rent");
-  const income     = n("s_income");
-  const living     = n("s_living");
-  const sellP      = n("s_sell");
-  const holdYears  = n("s_hold");
-  const extraBurden = n("s_extra");
+  const appraisal=n("s_appraisal"), ratio=n("s_ratio");
+  const right=Math.round(appraisal*ratio/100);
+  const price=n("s_price"), acqRate=n("s_acq_rate")/100, extra=n("s_extra");
+  const constY=n("s_const"), rate=n("s_rate")/100;
+  const live=el("chk_live").checked, temp=live?n("s_temp"):0;
+  const movePct=n("s_move_pct")/100, moveRate=n("s_move_rate")/100;
+  const rent=n("s_rent"), income=n("s_income"), living=n("s_living");
+  const sellP=n("s_sell"), hold=n("s_hold"), holdM=n("s_hold_cost");
+  const cgtRate=n("s_cgt")/100, growth=n("s_growth")/100;
 
-  // 슬라이더 표시
-  el("v_appraisal").textContent  = won(appraisal);
-  el("v_ratio").textContent      = ratio+"%";
-  el("v_right_calc").textContent = `→ 권리가액 ${won(right)}`;
-  el("v_price").textContent      = won(price);
-  el("v_acq_rate").textContent   = n("s_acq_rate").toFixed(1)+"%";
-  el("v_const").textContent      = constY+"년";
-  el("v_rate").textContent       = rate.toFixed(1)+"%";
-  el("v_rent").textContent       = won(rent)+"/월";
-  el("v_income").textContent     = won(income);
-  el("v_living").textContent     = won(living);
-  el("v_sell").textContent       = won(sellP);
-  el("v_hold").textContent       = holdYears === 0 ? "입주 즉시" : holdYears+"년 후";
+  /* 입력값 표시 */
+  el("v_appraisal").textContent=won(appraisal);
+  el("v_ratio").textContent=ratio+"%";
+  el("v_right_calc").textContent="→ 권리가액 "+won(right);
+  el("v_price").textContent=won(price);
+  el("v_acq_rate").textContent=n("s_acq_rate").toFixed(1)+"%";
+  el("v_extra").textContent=extra===0?"없음 (0원)":won(extra);
+  el("v_extra").style.color=extra===0?"var(--muted)":"var(--red)";
+  el("v_extra_pct").textContent=extra===0?"":`(분양가의 +${(extra/price*100).toFixed(0)}%)`;
+  el("v_const").textContent=constY+"년";
+  el("v_rate").textContent=n("s_rate").toFixed(1)+"%";
+  el("temp_wrap").style.display=live?"block":"none";
+  el("v_temp").textContent=won(temp)+"/월";
+  el("v_move_pct").textContent=n("s_move_pct")===0?"안 받음 (0%)":n("s_move_pct")+"% → "+won(appraisal*movePct);
+  el("v_move_rate").textContent=n("s_move_rate").toFixed(1)+"%";
+  el("v_rent").textContent=rent===0?"없음 (0원)":won(rent)+"/월";
+  el("v_income").textContent=won(income);
+  el("v_living").textContent=won(living);
+  el("v_sell").textContent=won(sellP);
+  el("v_hold").textContent=hold===0?"입주 즉시":hold+"년 후";
+  el("v_hold_cost").textContent=won(holdM)+"/월";
+  el("v_cgt").textContent=cgtRate===0?"0% (비과세)":n("s_cgt")+"%";
+  el("v_growth").textContent=(growth>0?"+":"")+n("s_growth").toFixed(1)+"%";
 
-  // 추가분담금 표시
-  el("v_extra").textContent = extraBurden === 0 ? "없음 (0원)" : won(extraBurden);
-  el("v_extra").style.color = extraBurden === 0 ? "var(--muted)" : "var(--red)";
-  el("v_extra_pct").textContent = extraBurden === 0 ? "" : `(분양가의 +${(extraBurden/price*100).toFixed(0)}%)`;
+  /* ── 기본 계산 ── */
+  const loan=Math.max(price-right,0);          // 분양가 − 권리가액
+  const reserved=Math.max(right-price,0);      // 돌려받는 청산금
+  const ratioLoss=appraisal-right;             // 비례율로 줄어든 몫 (음수면 늘어난 몫)
+  const acqTax=(price+extra)*acqRate;
+  const mInt=loan*rate/12;
+  const interest=loan*rate*constY;
+  const holdInt=loan*rate*hold;
+  const moveLoan=appraisal*movePct;
+  const mMoveInt=moveLoan*moveRate/12;
+  const moveInt=moveLoan*moveRate*constY;
+  const tempCost=temp*12*constY;
+  const rentLoss=rent*12*constY;
+  const holdCost=holdM*12*hold;
 
-  // ── 기본 계산 ──
-  const myCapital = right;
-  const loan      = Math.max(price - myCapital, 0);
-  const reserved  = Math.max(myCapital - price, 0);
-  const acqTax    = price * acqTaxRate;
-  const monthlyInterest = loan * (rate/100) / 12;
-  const totalInterest   = loan * (rate/100) * constY;
-  const holdInterest    = loan * (rate/100) * holdYears;
-  const totalAllInterest = totalInterest + holdInterest;
-  const rentLoss  = rent * 12 * constY;
-  const broker    = sellP * 0.005;
+  // 숨은 비용 합계 (추가 분담금 포함 — 모든 곳에서 같은 값 사용)
+  const hidden=interest+holdInt+moveInt+tempCost+rentLoss+acqTax+extra+holdCost;
+  const basis=price+extra;                     // 양도차익 계산 기준 (단순화)
+  const cgtOf=S=>Math.max(0,S-basis)*cgtRate;
+  const brokerOf=S=>S*0.005;
+  const netAt=S=>S-brokerOf(S)-cgtOf(S)-price-hidden-ratioLoss;
 
-  // 손익분기가 (추가분담금 포함)
-  const bePrice = (myCapital - reserved + loan + totalAllInterest + rentLoss + acqTax + extraBurden) / 0.995;
+  // 본전 매도가
+  const K=price+hidden+ratioLoss;
+  let be=K/0.995;
+  if(cgtRate>0&&be>basis) be=(K-cgtRate*basis)/(0.995-cgtRate);
+  const netPL=netAt(sellP);
 
-  // ── 대출 ──
-  el("r_loan").textContent = loan === 0 ? "대출 없음 🎉" : won(loan);
-  el("r_loan").style.color = loan === 0 ? "var(--green)" : "var(--blue)";
-  el("r_loan_sub").textContent = loan === 0
-    ? `권리가액 ${won(right)}이 분양가(${won(price)}) 이상입니다.`
-    : `권리가액 ${won(right)} (종전자산 ${won(appraisal)} × 비례율 ${ratio}%) — 분양가 ${won(price)} 대비 ${won(loan)} 부족`;
+  /* ── 대출 ── */
+  el("r_loan").textContent=loan===0?"대출 없음 🎉":won(loan);
+  el("r_loan").style.color=loan===0?"var(--green)":"var(--blue)";
+  el("r_loan_sub").innerHTML=loan===0
+    ? `권리가액 ${won(right)}이 분양가 ${won(price)}보다 많아 <b style="color:var(--green)">${won(reserved)}</b>을 청산금으로 돌려받습니다.`
+    : `권리가액 ${won(right)} (감정평가액 ${won(appraisal)} × 비례율 ${ratio}%)<br>분양가 ${won(price)}에서 <b style="color:var(--text)">${won(loan)}</b>이 모자랍니다.`
+      +(extra>0?`<br>추가 분담금 ${won(extra)}도 입주 전에 따로 마련해야 합니다.`:"");
 
-  // ── 이자 강조 ──
-  el("r_interest").textContent = loan === 0 ? "0원 (대출 없음)" : won(totalInterest);
-  el("r_interest").style.color = loan === 0 ? "var(--green)" : "var(--red)";
-  el("r_monthly_interest").textContent = loan === 0 ? "—" : won(Math.round(monthlyInterest))+"/월";
-  el("r_monthly_interest").style.color = loan === 0 ? "var(--muted)" : "var(--red)";
-  el("r_const_years").textContent = constY+"년간";
-  el("r_interest_sub").textContent = loan === 0
-    ? "대출이 없어 이자 부담이 없습니다."
-    : `대출 ${won(loan)} × 연 ${rate.toFixed(1)}% × ${constY}년 = ${won(totalInterest)}. 공사가 1년 지연될 때마다 ${won(Math.round(loan*(rate/100)))} 추가.`;
+  /* ── 이자 ── */
+  el("r_interest").textContent=loan===0?"0원 (대출 없음)":won(interest);
+  el("r_interest").style.color=loan===0?"var(--green)":"var(--red)";
+  el("r_monthly_interest").textContent=loan===0?"—":won(mInt)+"/월";
+  el("r_monthly_interest").style.color=loan===0?"var(--muted)":"var(--red)";
+  el("r_const_years").textContent=constY+"년간";
+  const perDelayYear=loan*rate+moveLoan*moveRate+temp*12+rent*12;
+  el("r_interest_sub").innerHTML=(loan===0
+    ? "분양 대출이 없어 이 이자는 없습니다."
+    : `대출 ${won(loan)} × 연 ${pctStr(rate*100)} × ${constY}년`)
+    +(perDelayYear>0?`<br>⏰ 공사가 <b style="color:var(--text)">1년 늦어질 때마다</b> 이자·거주비·임대수입 손실이 <b style="color:var(--red)">${won(perDelayYear)}</b>씩 더 생깁니다.`:"");
 
-  // ── 기회비용 ──
-  const rentCard = el("rent_card");
-  if(rent > 0){
-    rentCard.style.display = "block";
-    rentCard.className = "result-card red";
-    el("r_rent_loss").textContent = won(rentLoss);
-    el("r_rent_loss_sub").textContent = `월 ${won(rent)} × 12개월 × ${constY}년. 이 돈이 공사 기간 동안 사라집니다.`;
+  /* ── 이주 비용 ── */
+  const moveTotal=moveInt+tempCost;
+  const mc=el("move_card");
+  mc.className="result-card "+(moveTotal>0?"red":"");
+  el("r_move_total").textContent=moveTotal>0?won(moveTotal):"0원";
+  el("r_move_total").style.color=moveTotal>0?"var(--red)":"var(--green)";
+  const mParts=[];
+  if(tempCost>0) mParts.push(`임시 거주비 월 ${won(temp)} × ${constY*12}개월 = <b style="color:var(--text)">${won(tempCost)}</b>`);
+  if(moveLoan>0) mParts.push(`이주비 대출 ${won(moveLoan)} × 연 ${pctStr(moveRate*100)} × ${constY}년 = 이자 <b style="color:var(--text)">${won(moveInt)}</b><br>⚠️ 이주비 대출 원금 <b style="color:var(--amber)">${won(moveLoan)}</b>은 입주 때 갚아야 합니다.`);
+  el("r_move_sub").innerHTML=mParts.length?mParts.join("<br>"):(live?"임시 거주비와 이주비 대출이 없는 것으로 입력했습니다.":"직접 살지 않는 것으로 입력했습니다. (세를 주고 있다면 ⑤에 월세를 넣으세요)");
+
+  /* ── 임대 수입 손실 ── */
+  if(rent>0){
+    el("rent_card").style.display="block";
+    el("r_rent_loss").textContent=won(rentLoss);
+    el("r_rent_loss_sub").textContent=`월 ${won(rent)} × ${constY*12}개월. 이 돈이 공사 기간 동안 사라집니다.`;
+  } else el("rent_card").style.display="none";
+
+  /* ── 월 버티기 ── */
+  const mOut=mInt+mMoveInt+temp+living;
+  const mNet=income-mOut;
+  el("r_monthly_net").textContent=signed(mNet);
+  const outParts=[`생활비 ${won(living)}`];
+  if(temp>0) outParts.push(`임시 거주비 ${won(temp)}`);
+  if(mInt>0) outParts.push(`분양 대출 이자 ${won(mInt)}`);
+  if(mMoveInt>0) outParts.push(`이주비 이자 ${won(mMoveInt)}`);
+  el("r_monthly_net_sub").innerHTML=`월 수입 ${won(income)} − ${outParts.join(" − ")}`;
+
+  let riskPct;
+  if(mNet>=500000) riskPct=90; else if(mNet>=0) riskPct=68;
+  else if(mNet>=-500000) riskPct=40; else if(mNet>=-1500000) riskPct=20; else riskPct=6;
+  el("risk_needle").style.left=riskPct+"%";
+  ["rs_danger","rs_warn","rs_safe"].forEach(id=>{el(id).style.background="var(--card2)";el(id).style.border="1px solid var(--line)";});
+  const sc=el("survive_card"), sb=el("survive_box");
+  const reserveMonths=reserved>0&&mNet<0?Math.floor(reserved/Math.abs(mNet)):0;
+  if(mNet>=0){
+    sc.className="result-card green";
+    el("rs_safe").style.background="var(--green-glow)";el("rs_safe").style.border="2px solid rgba(46,204,143,.5)";
+    sb.style.background="rgba(46,204,143,.12)";sb.style.color="var(--green)";
+    sb.textContent=`✅ 매달 ${won(mNet)} 남습니다. 공사 기간을 버틸 수 있는 구조입니다.`;
+    el("r_monthly_net").style.color="var(--green)";
+  } else if(mNet>=-500000){
+    sc.className="result-card amber";
+    el("rs_warn").style.background="var(--amber-glow)";el("rs_warn").style.border="2px solid rgba(240,180,41,.5)";
+    sb.style.background="rgba(240,180,41,.12)";sb.style.color="var(--amber)";
+    sb.textContent=`⚠️ 매달 ${won(-mNet)} 모자랍니다. ${constY}년이면 총 ${won(-mNet*12*constY)}이 더 필요합니다.`+(reserveMonths?` 돌려받는 청산금으로 ${reserveMonths}개월 버틸 수 있습니다.`:"");
+    el("r_monthly_net").style.color="var(--amber)";
   } else {
-    rentCard.style.display = "none";
+    sc.className="result-card red";
+    el("rs_danger").style.background="var(--red-glow)";el("rs_danger").style.border="2px solid rgba(255,77,77,.5)";
+    sb.style.background="rgba(255,77,77,.12)";sb.style.color="var(--red)";
+    sb.textContent=`🚨 매달 ${won(-mNet)} 모자랍니다. ${constY}년이면 총 ${won(-mNet*12*constY)}이 더 필요합니다. 월 수입이 최소 ${won(mOut)}은 되어야 안전합니다.`+(reserveMonths?` (청산금으로 ${reserveMonths}개월 충당 가능)`:"");
+    el("r_monthly_net").style.color="var(--red)";
   }
 
-  // ── 월 버티기 (임대수익 제외 — 이미 기회비용으로 별도 표시) ──
-  const monthlyOut = monthlyInterest + living;
-  const monthlyNet = income - monthlyOut;
+  /* ── 매도 손익 ── */
+  const diffVsPrice=sellP-price;
+  el("v_sell_pl").textContent=(diffVsPrice>=0?"▲ 분양가보다 +":"▼ 분양가보다 ")+wonS(diffVsPrice);
+  el("v_sell_pl").style.color=diffVsPrice>=0?"var(--green)":"var(--red)";
 
-  el("r_monthly_net").textContent = (monthlyNet >= 0 ? "+" : "") + won(monthlyNet);
-  const survCard = el("survive_card");
+  el("r_profit").textContent=signed(netPL);
+  el("r_profit").style.color=netPL>=0?"var(--green)":"var(--red)";
+  el("profit_card").className="result-card "+(netPL>=0?"green":"red");
 
-  let needMin = monthlyOut - income; // 부족분
-  let riskPct; // 0(위험) ~ 100(안전)
+  const broker=brokerOf(sellP), cgt=cgtOf(sellP);
+  const items=[];
+  if(interest>0) items.push(`분양 대출 이자(공사 중) ${wonS(interest)}`);
+  if(holdInt>0) items.push(`분양 대출 이자(입주 후 ${hold}년) ${wonS(holdInt)}`);
+  if(moveInt>0) items.push(`이주비 이자 ${wonS(moveInt)}`);
+  if(tempCost>0) items.push(`임시 거주비 ${wonS(tempCost)}`);
+  if(rentLoss>0) items.push(`임대 수입 손실 ${wonS(rentLoss)}`);
+  items.push(`취득세 ${wonS(acqTax)}`);
+  if(extra>0) items.push(`추가 분담금 ${wonS(extra)}`);
+  if(holdCost>0) items.push(`보유 비용 ${wonS(holdCost)}`);
+  items.push(`중개보수 ${wonS(broker)}`);
+  if(cgt>0) items.push(`양도세 ${wonS(cgt)}`);
+  const allCost=hidden+broker+cgt;
+  el("r_profit_break").innerHTML=
+    `<div class="breakdown">`+
+    `<div class="bd-row"><span>매도가 − 분양가 (단순 차익)</span><span style="color:${diffVsPrice>=0?"var(--green)":"var(--red)"}">${signed(diffVsPrice,wonS)}</span></div>`+
+    `<div class="bd-row"><span>숨은 비용 합계</span><span style="color:var(--red)">−${wonS(allCost)}</span></div>`+
+    `<div class="bd-small">${items.join(" · ")}</div>`+
+    (ratioLoss!==0?`<div class="bd-row"><span>비례율 ${ratio}%로 ${ratioLoss>0?"깎인":"늘어난"} 내 몫</span><span style="color:${ratioLoss>0?"var(--red)":"var(--green)"}">${ratioLoss>0?"−":"+"}${wonS(Math.abs(ratioLoss))}</span></div>`:"")+
+    `<div class="bd-row bd-total"><span style="color:var(--text)"><b>원금 대비 실제 손익</b></span><span style="color:${netPL>=0?"var(--green)":"var(--red)"}">${signed(netPL,wonS)}</span></div>`+
+    `</div>`;
 
-  if(monthlyNet >= 500000)       riskPct = 90;
-  else if(monthlyNet >= 0)       riskPct = 65;
-  else if(monthlyNet >= -500000) riskPct = 40;
-  else if(monthlyNet >= -1500000)riskPct = 20;
-  else                           riskPct = 5;
-
-  el("risk_needle").style.left = riskPct+"%";
-
-  // 단계 활성화
-  ["rs_danger","rs_warn","rs_safe"].forEach(id=>{
-    el(id).classList.remove("active");
-    el(id).style.background = "var(--card2)";
-    el(id).style.borderColor = "var(--line)";
-    el(id).style.borderWidth = "1px";
+  // 기준 매도가별 손익
+  const grid=el("sell_grid"); grid.innerHTML="";
+  [
+    {label:"분양가에 팔면",p:price},
+    {label:"📍 본전 매도가",p:be,zero:true},
+    {label:"분양가 +50%",p:price*1.5},
+    {label:"분양가 +100%",p:price*2}
+  ].forEach(r=>{
+    const pl=r.zero?0:netAt(r.p);
+    const c=document.createElement("div"); c.className="sell-cell";
+    const col=r.zero?"var(--amber)":pl>=0?"var(--green)":"var(--red)";
+    c.style.borderColor=r.zero?"rgba(240,180,41,.6)":pl>=0?"rgba(46,204,143,.35)":"rgba(255,77,77,.35)";
+    c.style.background=r.zero?"var(--amber-glow)":pl>=0?"var(--green-glow)":"var(--red-glow)";
+    c.innerHTML=`<div class="sc-label" style="color:${col}">${r.label}</div><div class="sc-price">${wonS(r.p)}</div><div class="sc-pl" style="color:${col}">${r.zero?"± 0":signed(pl,wonS)}</div><div class="sc-note">원금 대비</div>`;
+    grid.appendChild(c);
   });
 
-  const survBox = el("survive_box");
-  if(monthlyNet >= 0){
-    survCard.className = "result-card green";
-    el("rs_safe").classList.add("active");
-    el("rs_safe").style.background = "var(--green-glow)";
-    el("rs_safe").style.borderColor = "rgba(46,204,143,.5)";
-    el("rs_safe").style.borderWidth = "2px";
-    survBox.style.background = "rgba(46,204,143,.12)"; survBox.style.color = "#2ecc8f";
-    survBox.textContent = `✅ 월 수입 ${won(income)} − 이자 ${won(Math.round(monthlyInterest))} − 생활비 ${won(living)} = 월 ${won(monthlyNet)} 흑자. 공사 기간을 버틸 수 있습니다.`;
-    el("r_monthly_net").style.color = "var(--green)";
-  } else if(monthlyNet >= -500000){
-    survCard.className = "result-card amber";
-    el("rs_warn").classList.add("active");
-    el("rs_warn").style.background = "var(--amber-glow)";
-    el("rs_warn").style.borderColor = "rgba(240,180,41,.5)";
-    el("rs_warn").style.borderWidth = "2px";
-    survBox.style.background = "rgba(240,180,41,.12)"; survBox.style.color = "var(--amber)";
-    survBox.textContent = `⚠️ 매달 ${won(Math.abs(monthlyNet))} 부족. 빠듯하지만 버틸 수 있는 수준입니다. 예상치 못한 지출 발생 시 위험해질 수 있습니다.`;
-    el("r_monthly_net").style.color = "var(--amber)";
-  } else {
-    survCard.className = "result-card red";
-    el("rs_danger").classList.add("active");
-    el("rs_danger").style.background = "var(--red-glow)";
-    el("rs_danger").style.borderColor = "rgba(255,77,77,.5)";
-    el("rs_danger").style.borderWidth = "2px";
-    const totalShort = Math.abs(monthlyNet) * 12 * constY;
-    survBox.style.background = "rgba(255,77,77,.12)"; survBox.style.color = "var(--red)";
-    survBox.textContent = `🚨 매달 ${won(Math.abs(monthlyNet))} 부족 → ${constY}년간 총 ${won(totalShort)} 현금이 필요합니다. 월 수입을 최소 ${won(Math.round(monthlyOut))} 이상으로 맞춰야 안전합니다.`;
-    el("r_monthly_net").style.color = "var(--red)";
-  }
+  // 상승률 기준
+  const years=constY+hold;
+  const expected=price*Math.pow(1+growth,years);
+  const needG=be>price?Math.pow(be/price,1/years)-1:0;
+  const expPL=netAt(expected);
+  el("growth_box").innerHTML=
+    (be>price
+      ? `📈 본전이 되려면 분양가가 지금부터 <b style="color:var(--amber)">${years}년 동안 매년 ${pctStr(needG*100)}씩</b> 올라야 합니다.<br>`
+      : `✅ 분양가에만 팔아도 본전 이상입니다.<br>`)+
+    `입력한 연 ${pctStr(growth*100)} 상승이면 ${years}년 뒤 예상가 <b>${wonS(expected)}</b> → 원금 대비 <b style="color:${expPL>=0?"var(--green)":"var(--red)"}">${signed(expPL,wonS)}</b>`+
+    `<div style="font-size:13px;color:var(--muted);margin-top:6px">※ 조합원 분양가를 출발점으로 한 단순 계산입니다. 실제 시세는 다를 수 있습니다.</div>`;
 
-  el("r_monthly_net_sub").textContent =
-    `월수입 ${won(income)} − 이자 ${won(Math.round(monthlyInterest))} − 생활비 ${won(living)}`+
-    (rent > 0 ? ` (임대수익 손실 ${won(rentLoss)}은 위 기회비용 항목 참조)` : "");
-
-  // ── 매도 손익 (공사+보유 전체 이자 반영) ──
-  el("v_sell").textContent = won(sellP);
-  const finalMoney = sellP * 0.995 + reserved - loan - totalAllInterest - rentLoss - acqTax - extraBurden;
-  const netPL = finalMoney - myCapital;
-  const grossPL = sellP - price;  // 단순 차익 (분양가 기준)
-
-  const profitCard = el("profit_card");
-  const rPL = el("r_profit");
-  rPL.textContent = (netPL >= 0 ? "+" : "") + won(netPL);
-  rPL.style.color = netPL >= 0 ? "var(--green)" : "var(--red)";
-  profitCard.className = "result-card " + (netPL >= 0 ? "green" : "red");
-
-  // 단순 차익 vs 실제 이익 비교
-  const grossLine = grossPL !== netPL
-    ? `<div style="margin-top:10px;padding:10px 12px;border-radius:10px;background:rgba(0,0,0,.2);font-size:13px;line-height:1.9">
-        <span style="color:var(--muted)">단순 차익 (매도가 − 분양가)</span> <b style="color:var(--muted)">${grossPL>=0?"+":""}${wonS(grossPL)}</b><br>
-        <span style="color:var(--muted)">숨은 비용 (이자+취득세+기회비용)</span> <b style="color:var(--red)">−${wonS(Math.round(totalAllInterest+rentLoss+acqTax))}</b><br>
-        <div style="border-top:1px solid rgba(255,255,255,.08);margin-top:6px;padding-top:6px">
-        <b>실제 손익</b> <b style="color:${netPL>=0?"var(--green)":"var(--red)"}">${netPL>=0?"+":""}${wonS(netPL)}</b>
-        </div>
-      </div>`
-    : "";
-
-  el("r_profit_sub").innerHTML =
-    `매도가 ${won(sellP)} − 대출 ${won(loan)} − 이자 ${won(totalAllInterest)} − 기회비용 ${won(rentLoss)} − 취득세 ${won(acqTax)}` +
-    grossLine;
-
-  // 매도가 옆 — 분양가 대비 단순 차이만 표시
-  const plEl = el("v_sell_pl");
-  const diffVsPrice = sellP - price;
-  plEl.textContent = (diffVsPrice >= 0 ? "▲ 분양가 대비 +" : "▼ 분양가 대비 ") + wonS(diffVsPrice);
-  plEl.style.color = diffVsPrice >= 0 ? "var(--green)" : "var(--red)";
-
-  // 종로구 상승률 기반 가능성
-  updatePossibility(price, sellP, holdYears, rate, loan, constY);
-
-  // ── 상황별 조언 카드 ──
-  const advCard    = el("advisory_card");
-  const advTitle   = el("advisory_title");
-  const advSub     = el("advisory_sub");
-  const advContent = el("advisory_content");
-  const gap        = bePrice - price;
-  const totalCost  = totalAllInterest + rentLoss + acqTax;
-  const constTotal = constY + holdYears;
-  const monthlyShort = Math.max(0, (monthlyInterest + living) - income);
-
-  // 임대사업자 관점 공통 멘트
-  const rentalOwnerNote = rent > 0
-    ? `🏠 <b style="color:var(--amber)">임대사업자라면 더 신중하게.</b> 공사 ${constY}년간 월세 <b style="color:var(--red)">${won(rentLoss)}</b>가 사라집니다. 기존 세입자가 공사 후 돌아오지 않을 수 있고, 상권이 바뀌면 임대 조건도 달라집니다.`
-    : null;
-
-  let advBg, advBorder, title, sub, advLines = [];
-
-  if(netPL < 0 && monthlyShort > 0){
-    advBg = "rgba(255,77,77,.06)"; advBorder = "rgba(255,77,77,.45)";
-    title = `📊 숫자가 말하는 냉정한 현실`;
-    sub   = `현재 조건에서 재개발은 과정도 결과도 손해입니다`;
-    advLines = [
-      `🚨 <b style="color:var(--red)">공사 기간 매달 ${won(monthlyShort)} 부족, ${constTotal}년 후에도 ${won(Math.abs(netPL))} 손해.</b> 찬성측이 말하는 "새 아파트"를 얻기 위해 치러야 할 현실적인 대가입니다.`,
-      `📌 이자·취득세·기회비용 등 눈에 보이지 않는 비용만 <b style="color:var(--red)">${won(Math.round(totalCost))}</b>입니다. 이 숫자가 지금 내 상황에서 맞는지, 찬성 도장을 찍기 전에 한 번 더 생각해보실 필요가 있습니다.`,
-      `⏳ 재개발은 <b>어느 단계를 넘으면 되돌리기 어렵습니다.</b> 관리처분인가 이후에는 조합원 개인이 선택할 수 있는 폭이 크게 좁아집니다.`,
+  /* ── 상황별 조언 ── */
+  const monthlyShort=Math.max(0,-mNet);
+  const totalYears=constY+hold;
+  let bg,bd,title,sub,lines;
+  if(netPL<0&&monthlyShort>0){
+    bg="rgba(255,77,77,.06)";bd="rgba(255,77,77,.45)";
+    title="📊 숫자가 말하는 냉정한 현실"; sub="지금 넣은 조건에서는 과정도 결과도 손해입니다";
+    lines=[
+      `🚨 <b style="color:var(--red)">공사 기간 매달 ${won(monthlyShort)} 부족, ${totalYears}년 뒤 팔아도 ${won(-netPL)} 손해.</b> 새 아파트를 얻기 위해 치러야 할 현실적인 대가입니다.`,
+      `📌 이자·거주비·세금 등 눈에 잘 안 보이는 비용만 <b style="color:var(--red)">${won(allCost)}</b>입니다. 동의서에 도장을 찍기 전에 이 숫자가 내 상황에 맞는지 한 번 더 확인해보세요.`,
+      `⏳ 재개발은 <b>어느 단계를 넘으면 되돌리기 어렵습니다.</b> 관리처분인가 이후에는 조합원 개인이 선택할 수 있는 폭이 크게 좁아집니다.`
     ];
-  } else if(netPL < 0){
-    advBg = "rgba(255,77,77,.06)"; advBorder = "rgba(255,77,77,.45)";
-    title = `📊 ${constTotal}년을 기다려도 손해인 구조입니다`;
-    sub   = `찬성측이 강조하는 '새 아파트'의 실제 비용을 확인하세요`;
-    advLines = [
-      `📌 예상 매도가 <b>${won(sellP)}</b>로는 원금보다 <b style="color:var(--red)">${won(Math.abs(netPL))} 손실</b>이 납니다. 원금 회수를 위해선 <b style="color:var(--amber)">${won(Math.round(bePrice))}</b>까지 올라야 합니다.`,
-      `⏱ <b>${constTotal}년</b> 동안 발생하는 이자·기회비용·취득세 합계 <b style="color:var(--red)">${won(Math.round(totalCost))}</b>. 이 비용이 내 상황에서 감당 가능한지, 스스로에게 솔직하게 물어보시길 바랍니다.`,
-      `⏳ <b>사업이 진행될수록 선택의 폭이 좁아집니다.</b> 사업시행인가·관리처분인가를 넘기면 이후엔 개인이 할 수 있는 것이 거의 없습니다. 지금이 가장 많은 것을 따져볼 수 있는 시간입니다.`,
+  } else if(netPL<0){
+    bg="rgba(255,77,77,.06)";bd="rgba(255,77,77,.45)";
+    title=`📊 ${totalYears}년을 기다려도 손해인 구조입니다`; sub="새 아파트의 실제 비용을 확인하세요";
+    lines=[
+      `📌 예상 매도가 <b>${won(sellP)}</b>로는 원금보다 <b style="color:var(--red)">${won(-netPL)} 손해</b>입니다. 본전이 되려면 <b style="color:var(--amber)">${won(be)}</b>에 팔아야 합니다.`,
+      `⏱ ${totalYears}년 동안 드는 이자·거주비·세금 등 합계 <b style="color:var(--red)">${won(allCost)}</b>. 이 비용을 감당할 수 있는지 솔직하게 따져보세요.`,
+      `⏳ <b>사업이 진행될수록 선택의 폭이 좁아집니다.</b> 지금이 가장 많은 것을 따져볼 수 있는 시간입니다.`
     ];
-  } else if(monthlyShort > 0 && netPL < totalCost * 0.5){
-    advBg = "rgba(240,180,41,.06)"; advBorder = "rgba(240,180,41,.45)";
-    title = `📊 버티는 것이 생각보다 훨씬 힘듭니다`;
-    sub   = `이익이 있어 보여도 과정의 고통과 리스크를 먼저 확인하세요`;
-    advLines = [
-      `💸 매달 <b style="color:var(--red)">${won(monthlyShort)} 부족</b>한 상태로 <b>${constY}년</b>을 버텨야 합니다. 막연하게 "어떻게 되겠지" 하다가 이자 연체나 생활고로 이어지는 경우가 실제로 있습니다.`,
-      `📌 공사가 2년 지연되면 이자만 <b style="color:var(--amber)">${won(Math.round(loan*(rate/100)*2))}</b> 추가됩니다. 창신동처럼 공사 난이도가 높은 지역일수록 지연 가능성을 현실적으로 봐야 합니다.`,
-      `⏳ <b>지금은 아직 선택할 수 있는 단계입니다.</b> 사업이 더 진행되기 전에, 이 숫자들이 내 생활과 자산에 미칠 영향을 충분히 따져보시길 권합니다.`,
+  } else if(monthlyShort>0){
+    bg="rgba(240,180,41,.06)";bd="rgba(240,180,41,.45)";
+    title="📊 결과는 이익이지만, 버티는 과정이 힘듭니다"; sub="과정의 부담과 위험을 먼저 확인하세요";
+    lines=[
+      `💸 매달 <b style="color:var(--red)">${won(monthlyShort)}</b> 모자란 상태로 <b>${constY}년</b>을 버텨야 합니다. 중간에 이자 연체나 생활고가 생기면 입주 전에 헐값에 팔아야 할 수도 있습니다.`,
+      `📌 공사가 2년 늦어지면 이자·거주비 등이 <b style="color:var(--amber)">${won(perDelayYear*2)}</b> 더 듭니다.`,
+      `⏳ <b>이익은 예상 매도가 ${wonS(sellP)}가 실현될 때 이야기입니다.</b> 본전 매도가는 <b style="color:var(--amber)">${won(be)}</b>입니다.`
     ];
-  } else if(gap > 0){
-    advBg = "rgba(240,180,41,.06)"; advBorder = "rgba(240,180,41,.45)";
-    title = `📊 예상 매도가(${wonS(sellP)})에서는 이익이 납니다`;
-    sub   = `단, 이 매도가가 실현될지가 핵심입니다`;
-    advLines = [
-      `✅ 예상 매도가 <b style="color:var(--green)">${won(sellP)}</b>로 팔면 <b style="color:var(--green)">${won(netPL)} 이익</b>. 이자·취득세·기회비용 <b>${won(Math.round(totalCost))}</b>이 모두 반영된 수치입니다.`,
-      `📌 분양가(<b>${won(price)}</b>)에 팔면 손해인 이유 — 이자·취득세·기회비용 합계 <b style="color:var(--amber)">${won(Math.round(totalCost))}</b>이 발생하기 때문입니다. 손익분기점은 <b style="color:var(--amber)">${won(Math.round(bePrice))}</b>이며, 이 아래로 내려오면 손해로 전환됩니다.`,
-      `⏳ <b>예상 시세가 실현될지는 누구도 보장하지 않습니다.</b> 시세가 손익분기점 아래로 형성되면 결과가 달라집니다. 사업이 진행될수록 선택의 폭이 좁아지니, 지금 조합 자료를 직접 확인해보시길 권합니다.`,
+  } else if(be>price){
+    bg="rgba(240,180,41,.06)";bd="rgba(240,180,41,.45)";
+    title=`📊 ${wonS(sellP)}에 팔면 이익이 납니다`; sub="단, 이 매도가가 실현될지가 핵심입니다";
+    lines=[
+      `✅ ${wonS(sellP)}에 팔면 원금 대비 <b style="color:var(--green)">${won(netPL)} 이익</b>. 이자·거주비·세금 <b>${won(allCost)}</b>을 모두 뺀 값입니다.`,
+      `📌 분양가(${won(price)})에 팔면 손해입니다. 본전 매도가는 <b style="color:var(--amber)">${won(be)}</b>이며, 이보다 낮게 팔리면 손해로 바뀝니다.`,
+      `⏳ <b>예상 시세가 실현될지는 누구도 보장하지 않습니다.</b> 조합 자료의 분양가·비례율·공사기간을 직접 확인해보세요.`
     ];
   } else {
-    advBg = "rgba(46,204,143,.06)"; advBorder = "rgba(46,204,143,.4)";
-    title = `📊 현재 조건에서는 이익이 나는 구조입니다`;
-    sub   = `단, 지금 입력한 조건들이 실제와 같은지 꼭 확인하세요`;
-    advLines = [
-      `✅ ${constTotal}년 후 <b style="color:var(--green)">${won(netPL)} 이익</b>이 예상됩니다. 이자·기회비용 ${won(Math.round(totalCost))}이 이미 반영된 수치입니다.`,
-      `⏱ 공사가 2~3년 지연될 경우 이자 추가 <b style="color:var(--amber)">${won(Math.round(loan*(rate/100)*2))}</b>. 창신동 특성상 지연 가능성은 항상 열어두고 계산하는 것이 현실적입니다.`,
-      `⏳ <b>조합이 제시한 분양가·비례율·공사기간이 지금 입력값과 다를 수 있습니다.</b> 숫자 하나가 달라지면 결과가 완전히 바뀝니다. 조합 자료를 직접 확인해보시길 권합니다.`,
+    bg="rgba(46,204,143,.06)";bd="rgba(46,204,143,.4)";
+    title="📊 지금 넣은 조건에서는 이익이 나는 구조입니다"; sub="단, 입력한 조건이 실제와 같은지 꼭 확인하세요";
+    lines=[
+      `✅ ${totalYears}년 뒤 원금 대비 <b style="color:var(--green)">${won(netPL)} 이익</b>이 예상됩니다. 이자·거주비·세금 ${won(allCost)}이 이미 빠진 값입니다.`,
+      `⏱ 공사가 2년 늦어지면 <b style="color:var(--amber)">${won(perDelayYear*2)}</b>이 더 듭니다. 창신동 여건상 지연 가능성은 늘 열어두는 게 현실적입니다.`,
+      `⏳ <b>분양가·비례율·공사기간 중 하나만 달라져도 결과가 바뀝니다.</b> 조합 자료를 직접 확인해보세요.`
     ];
   }
+  if(rent>0) lines.push(`🏠 <b style="color:var(--amber)">세를 주고 있다면 더 신중하게.</b> 공사 ${constY}년간 월세 <b style="color:var(--red)">${won(rentLoss)}</b>가 사라지고, 기존 세입자가 돌아오지 않을 수 있습니다.`);
+  const ac=el("advisory_card");
+  ac.style.background=bg; ac.style.borderColor=bd;
+  el("advisory_title").textContent=title;
+  el("advisory_title").style.color=bd.includes("77,77")?"var(--red)":bd.includes("180,41")?"var(--amber)":"var(--green)";
+  el("advisory_sub").textContent=sub;
+  el("advisory_content").innerHTML=lines.map(l=>`<div class="adv-line">${l}</div>`).join("");
 
-  advCard.style.background   = advBg;
-  advCard.style.borderColor  = advBorder;
-  advTitle.textContent       = title;
-  advTitle.style.color       = advBorder.includes("77,77") ? "var(--red)" : advBorder.includes("180,41") ? "var(--amber)" : "var(--green)";
-  advSub.textContent         = sub;
-
-  const lines = rentalOwnerNote ? [...advLines, rentalOwnerNote] : advLines;
-  advContent.innerHTML = lines.map((line, i) =>
-    `<div style="font-size:14px;line-height:1.8;color:#d0dcea;padding:10px 0;${i < lines.length-1 ? 'border-bottom:1px solid rgba(255,255,255,.06)' : ''}">${line}</div>`
-  ).join("");
+  /* ── 하단 요약 ── */
+  el("sb_loan").textContent=loan===0?"없음":wonS(loan);
+  el("sb_loan").style.color=loan===0?"var(--green)":"var(--blue)";
+  el("sb_month").textContent=signed(mNet,wonS);
+  el("sb_month").style.color=mNet>=0?"var(--green)":mNet>=-500000?"var(--amber)":"var(--red)";
+  el("sb_profit").textContent=signed(netPL,wonS);
+  el("sb_profit").style.color=netPL>=0?"var(--green)":"var(--red)";
 }
 
-// 이벤트 연결
-["s_appraisal","s_ratio","s_price","s_acq_rate","s_extra","s_const","s_rate",
- "s_rent","s_income","s_living","s_sell","s_hold"
-].forEach(id=>el(id).addEventListener("input",calc));
-
+/* ══════════ 시작 ══════════ */
+enhanceInputs();
+loadState();
+document.querySelectorAll("input[type=range]").forEach(r=>r.addEventListener("input",calc));
+document.querySelectorAll("input[type=checkbox]").forEach(c=>c.addEventListener("change",calc));
 calc();
 </script>
 </body>
